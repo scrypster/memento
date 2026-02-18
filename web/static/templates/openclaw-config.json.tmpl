@@ -1,0 +1,20 @@
+{
+  "plugins": {
+    "entries": {
+      "mcp-adapter": {
+        "servers": [
+          {
+            "name": "memento",
+            "transport": "stdio",
+            "command": "{{MCP_BINARY_PATH}}",
+            "env": {
+              "MEMENTO_DATA_PATH": "{{DATA_DIR}}",
+              "MEMENTO_CONNECTIONS_CONFIG": "{{CONNECTIONS_CONFIG}}"
+            }
+          }
+        ],
+        "toolPrefix": true
+      }
+    }
+  }
+}

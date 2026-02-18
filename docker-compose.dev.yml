@@ -1,0 +1,29 @@
+# Docker Compose override for development
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  memento:
+    # Mount source code for live development
+    volumes:
+      - .:/app/src:ro
+    environment:
+      # Development-friendly settings
+      - MEMENTO_SECURITY_MODE=development
+      - MEMENTO_LOG_LEVEL=debug
+    # Expose additional debug port if needed
+    ports:
+      - "6363:6363"
+      - "6060:6060"  # pprof debug port
+
+  ollama:
+    # Keep models between restarts during development
+    volumes:
+      - ./ollama-models:/root/.ollama
+
+  backup:
+    # Less frequent backups during development
+    environment:
+      - BACKUP_INTERVAL=7200  # 2 hours
+      - BACKUP_RETENTION_DAYS=3

@@ -1,0 +1,650 @@
+/* ============================================================================
+   MEMENTO DESIGN TOKENS - Centralized Theme System
+   ============================================================================
+
+   This file is the SINGLE SOURCE OF TRUTH for all design tokens:
+   - Color palette (raw values)
+   - Dark mode semantic tokens (default in :root)
+   - Light mode overrides (html.light selector)
+   - Brand colors (cyan primary, purple secondary)
+   - Status colors (success/danger/warning/info)
+   - Surfaces (app/raised/overlay/inset)
+   - Text colors (primary/secondary/tertiary)
+   - Borders (default/subtle/strong)
+   - Shadows (sm/md/lg/accent)
+   - Spacing, typography, transitions, radius
+
+   All components should use these tokens via CSS variables.
+   No hardcoded colors should appear in component CSS.
+*/
+
+/* ============================================================================
+   COLOR PALETTE - Raw values (dark mode default)
+   ============================================================================ */
+
+:root {
+  /* ------
+     Brand Colors
+     ------ */
+  --color-primary: #06b6d4;           /* Cyan - primary actions, links, brand */
+  --color-primary-hover: #0891b2;     /* Darker cyan on hover */
+  --color-primary-active: #0e7490;    /* Even darker for active state */
+  --color-primary-glow: rgba(6, 182, 212, 0.25);
+  --color-primary-subtle: rgba(6, 182, 212, 0.1);
+
+  --color-secondary: #a855f7;         /* Purple - relationships, special accents */
+  --color-secondary-hover: #9333ea;   /* Darker purple on hover */
+  --color-secondary-active: #7e22ce;  /* Even darker for active state */
+  --color-secondary-glow: rgba(168, 85, 247, 0.25);
+  --color-secondary-subtle: rgba(168, 85, 247, 0.1);
+
+  /* ------
+     Status Colors
+     ------ */
+  --color-success: #10b981;           /* Green - success states, complete */
+  --color-success-hover: #059669;     /* Darker green on hover */
+  --color-success-subtle: rgba(16, 185, 129, 0.1);
+
+  --color-danger: #ef4444;            /* Red - errors, failed, destructive */
+  --color-danger-hover: #dc2626;      /* Darker red on hover */
+  --color-danger-subtle: rgba(239, 68, 68, 0.1);
+
+  --color-warning: #f59e0b;           /* Amber - warnings, pending */
+  --color-warning-hover: #d97706;     /* Darker amber on hover */
+  --color-warning-subtle: rgba(245, 158, 11, 0.1);
+
+  --color-info: #3b82f6;              /* Blue - info badges, connections */
+  --color-info-hover: #2563eb;        /* Darker blue on hover */
+  --color-info-subtle: rgba(59, 130, 246, 0.1);
+
+  /* ------
+     Dark Mode Foundation (default)
+     ------ */
+  --color-dark-bg: #0a0a0a;           /* Main background - deep dark */
+  --color-dark-surface: #1a1a2e;      /* Cards, panels - blue-tinted */
+  --color-dark-surface-elevated: #16213e;  /* Elevated cards, modals, hover states */
+  --color-dark-surface-alt: #1f2937;  /* Alternative surface for variety */
+  --color-dark-surface-inset: #0f1419;    /* Inset/pressed surfaces */
+  --color-dark-border: rgba(255, 255, 255, 0.05);
+  --color-dark-border-subtle: rgba(255, 255, 255, 0.02);
+  --color-dark-border-strong: rgba(255, 255, 255, 0.1);
+
+  /* ------
+     Light Mode Foundation (overridden below)
+     ------ */
+  --color-light-bg: #fafafa;          /* Main background - soft off-white */
+  --color-light-surface: #ffffff;     /* Cards, panels - pure white */
+  --color-light-surface-elevated: #f3f4f6;  /* Elevated cards, subtle bg shift */
+  --color-light-surface-alt: #f8f9fa; /* Alternative surface */
+  --color-light-surface-inset: #f1f5f9;    /* Inset/pressed surfaces */
+  --color-light-border: rgba(0, 0, 0, 0.05);
+  --color-light-border-subtle: rgba(0, 0, 0, 0.02);
+  --color-light-border-strong: rgba(0, 0, 0, 0.1);
+
+  /* ------
+     Dark Mode Text Colors (default)
+     ------ */
+  --color-text-primary-dark: #f9fafb;     /* Main text - soft white */
+  --color-text-secondary-dark: #9ca3af;   /* Muted text, labels */
+  --color-text-tertiary-dark: #6b7280;    /* Disabled, placeholder */
+  --color-text-inverted-dark: #0a0a0a;    /* Text on light backgrounds */
+
+  /* ------
+     Light Mode Text Colors (overridden below)
+     ------ */
+  --color-text-primary-light: #111827;    /* Main text - rich dark */
+  --color-text-secondary-light: #6b7280;  /* Muted text, labels */
+  --color-text-tertiary-light: #9ca3af;   /* Disabled, placeholder */
+  --color-text-inverted-light: #f9fafb;   /* Text on dark backgrounds */
+}
+
+/* ============================================================================
+   SEMANTIC TOKENS - Dark Mode (applied to :root)
+   ============================================================================ */
+
+:root {
+  /* ------
+     Surfaces
+     ------ */
+  --surface-app: var(--color-dark-bg);
+  --surface-raised: var(--color-dark-surface);
+  --surface-overlay: var(--color-dark-surface-elevated);
+  --surface-inset: var(--color-dark-surface-inset);
+
+  /* ------
+     Text
+     ------ */
+  --text-primary: var(--color-text-primary-dark);
+  --text-secondary: var(--color-text-secondary-dark);
+  --text-tertiary: var(--color-text-tertiary-dark);
+  --text-inverted: var(--color-text-inverted-dark);
+
+  /* ------
+     Borders
+     ------ */
+  --border-default: var(--color-dark-border);
+  --border-subtle: var(--color-dark-border-subtle);
+  --border-strong: var(--color-dark-border-strong);
+
+  /* ------
+     Interactive
+     ------ */
+  --interactive-hover: var(--color-dark-surface-elevated);
+  --interactive-pressed: var(--color-dark-surface-alt);
+
+  /* ------
+     Legacy aliases for compatibility
+     ------ */
+  --color-accent: var(--color-primary);
+  --color-accent-hover: var(--color-primary-hover);
+  --color-accent-glow: var(--color-primary-glow);
+  --color-text-light: var(--color-text-primary-dark);
+  --color-text-muted-val: var(--color-text-secondary-dark);
+  --color-text-dark: var(--color-text-primary-light);
+  --color-text-dark-muted: #4b5563;
+  --color-amber: var(--color-warning);
+  --color-amber-hover: var(--color-warning-hover);
+  --color-purple: var(--color-secondary);
+  --color-green: var(--color-success);
+}
+
+/* ============================================================================
+   LIGHT MODE OVERRIDES
+   ============================================================================ */
+
+html.light {
+  /* ------
+     Color Palette Overrides
+     ------ */
+  --color-primary: #06b6d4;           /* Cyan stays same */
+  --color-primary-hover: #0891b2;
+  --color-primary-active: #0e7490;
+  --color-primary-glow: rgba(6, 182, 212, 0.2);
+  --color-primary-subtle: rgba(6, 182, 212, 0.08);
+
+  --color-secondary: #a855f7;         /* Purple stays same */
+  --color-secondary-hover: #9333ea;
+  --color-secondary-active: #7e22ce;
+  --color-secondary-glow: rgba(168, 85, 247, 0.2);
+  --color-secondary-subtle: rgba(168, 85, 247, 0.08);
+
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  --color-success-subtle: rgba(16, 185, 129, 0.08);
+
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-subtle: rgba(239, 68, 68, 0.08);
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-subtle: rgba(245, 158, 11, 0.08);
+
+  --color-info: #3b82f6;
+  --color-info-hover: #2563eb;
+  --color-info-subtle: rgba(59, 130, 246, 0.08);
+
+  /* ------
+     Semantic Surface Overrides
+     ------ */
+  --surface-app: var(--color-light-bg);
+  --surface-raised: var(--color-light-surface);
+  --surface-overlay: var(--color-light-surface-elevated);
+  --surface-inset: var(--color-light-surface-inset);
+
+  /* ------
+     Text Color Overrides
+     ------ */
+  --text-primary: var(--color-text-primary-light);
+  --text-secondary: var(--color-text-secondary-light);
+  --text-tertiary: var(--color-text-tertiary-light);
+  --text-inverted: var(--color-text-inverted-light);
+
+  /* ------
+     Border Overrides
+     ------ */
+  --border-default: var(--color-light-border);
+  --border-subtle: var(--color-light-border-subtle);
+  --border-strong: var(--color-light-border-strong);
+
+  /* ------
+     Interactive Overrides
+     ------ */
+  --interactive-hover: var(--color-light-surface-elevated);
+  --interactive-pressed: var(--color-light-surface-alt);
+
+  /* ------
+     Legacy aliases for light mode
+     ------ */
+  --color-light-bg: #fafafa;
+  --color-light-surface: #ffffff;
+  --color-light-surface-alt: #f9fafb;
+  --color-light-border: rgba(0, 0, 0, 0.05);
+  --color-text-dark: var(--color-text-primary-light);
+}
+
+/* ============================================================================
+   TYPOGRAPHY TOKENS
+   ============================================================================ */
+
+:root {
+  /* ------
+     Font Families
+     ------ */
+  --font-heading: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+
+  /* ------
+     Font Sizes
+     ------ */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+  --text-4xl: 2.25rem;   /* 36px */
+
+  /* ------
+     Font Weights
+     ------ */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ------
+     Line Heights
+     ------ */
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* ------
+     Letter Spacing
+     ------ */
+  --letter-spacing-tight: -0.5px;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.5px;
+}
+
+/* ============================================================================
+   SPACING TOKENS
+   ============================================================================ */
+
+:root {
+  /* ------
+     Spacing Scale (4px base)
+     ------ */
+  --spacing-1: 0.25rem;   /* 4px */
+  --spacing-2: 0.5rem;    /* 8px */
+  --spacing-3: 0.75rem;   /* 12px */
+  --spacing-4: 1rem;      /* 16px */
+  --spacing-6: 1.5rem;    /* 24px */
+  --spacing-8: 2rem;      /* 32px */
+  --spacing-12: 3rem;     /* 48px */
+  --spacing-16: 4rem;     /* 64px */
+
+  /* ------
+     Gap Scale (for flexbox/grid)
+     ------ */
+  --gap-xs: 0.5rem;
+  --gap-sm: 1rem;
+  --gap-md: 1.5rem;
+  --gap-lg: 2rem;
+  --gap-xl: 3rem;
+
+  /* ------
+     Padding Scale
+     ------ */
+  --padding-xs: 0.5rem;
+  --padding-sm: 1rem;
+  --padding-md: 1.5rem;
+  --padding-lg: 2rem;
+  --padding-xl: 3rem;
+
+  /* ------
+     Inset (for positioning)
+     ------ */
+  --inset-none: 0;
+  --inset-sm: 0.5rem;
+  --inset-md: 1rem;
+  --inset-lg: 1.5rem;
+}
+
+/* ============================================================================
+   BORDER RADIUS TOKENS
+   ============================================================================ */
+
+:root {
+  --radius-none: 0;
+  --radius-sm: 0.375rem;   /* 6px */
+  --radius-base: 0.5rem;   /* 8px */
+  --radius-md: 0.75rem;    /* 12px */
+  --radius-lg: 1rem;       /* 16px */
+  --radius-xl: 1.5rem;     /* 24px */
+  --radius-full: 9999px;   /* Fully rounded (pills) */
+}
+
+/* ============================================================================
+   SHADOW TOKENS (elevation system)
+   ============================================================================ */
+
+:root {
+  /* ------
+     Light Shadows (for light mode)
+     ------ */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* ------
+     Dark Shadows (enhanced for dark surfaces)
+     ------ */
+  --shadow-dark-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-dark-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.2);
+  --shadow-dark-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-dark-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-dark-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+
+  /* ------
+     Accent Shadows (glows)
+     ------ */
+  --shadow-accent-primary: 0 0 20px var(--color-primary-glow);
+  --shadow-accent-secondary: 0 0 20px var(--color-secondary-glow);
+  --shadow-accent-success: 0 0 20px rgba(16, 185, 129, 0.25);
+  --shadow-accent-danger: 0 0 20px rgba(239, 68, 68, 0.25);
+  --shadow-accent-warning: 0 0 20px rgba(245, 158, 11, 0.25);
+}
+
+/* ============================================================================
+   TRANSITION TOKENS
+   ============================================================================ */
+
+:root {
+  /* ------
+     Durations
+     ------ */
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+
+  /* ------
+     Timing Functions (easing curves)
+     ------ */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-linear: linear;
+
+  /* ------
+     Common Transitions
+     ------ */
+  --transition-colors: color var(--duration-normal) var(--ease-out),
+                       background-color var(--duration-normal) var(--ease-out),
+                       border-color var(--duration-normal) var(--ease-out);
+  --transition-transform: transform var(--duration-normal) var(--ease-out);
+  --transition-shadow: box-shadow var(--duration-normal) var(--ease-out);
+  --transition-all: all var(--duration-normal) var(--ease-out);
+}
+
+/* ============================================================================
+   Z-INDEX TOKENS
+   ============================================================================ */
+
+:root {
+  /* ------
+     Stacking context hierarchy
+     ------ */
+  --z-hide: -1;
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-modal-backdrop: 1300;
+  --z-modal: 1400;
+  --z-toast: 1500;
+  --z-tooltip: 1600;
+}
+
+/* ============================================================================
+   OPACITY TOKENS
+   ============================================================================ */
+
+:root {
+  --opacity-none: 0;
+  --opacity-very-low: 0.05;
+  --opacity-low: 0.1;
+  --opacity-medium: 0.5;
+  --opacity-high: 0.75;
+  --opacity-full: 1;
+}
+
+/* ============================================================================
+   FOCUS STATE TOKENS
+   ============================================================================ */
+
+:root {
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-color: var(--color-primary);
+  --focus-outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  --focus-outline-offset: var(--focus-ring-offset);
+}
+
+/* ============================================================================
+   GLASS MORPHISM TOKENS
+   ============================================================================ */
+
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.95);
+  --glass-bg-dark: rgba(10, 10, 10, 0.85);
+  --glass-backdrop: blur(12px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.05);
+  --border-color: rgba(255, 255, 255, 0.05);
+  --border-color-light: rgba(31, 41, 55, 0.05);
+}
+
+html.light {
+  --glass-bg: rgba(250, 250, 250, 0.85);
+  --glass-bg-dark: rgba(255, 255, 255, 0.95);
+  --glass-border: 1px solid rgba(0, 0, 0, 0.05);
+  --border-color: rgba(0, 0, 0, 0.05);
+  --border-color-light: rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================================================
+   COMPONENT-SPECIFIC TOKENS
+   ============================================================================ */
+
+:root {
+  /* ------
+     Button Tokens
+     ------ */
+  --button-height-sm: 2rem;     /* 32px */
+  --button-height-md: 2.5rem;   /* 40px */
+  --button-height-lg: 3rem;     /* 48px */
+
+  --button-padding-x-sm: 0.75rem;
+  --button-padding-x-md: 1rem;
+  --button-padding-x-lg: 1.5rem;
+
+  /* ------
+     Card Tokens
+     ------ */
+  --card-padding-sm: 1rem;
+  --card-padding-md: 1.5rem;
+  --card-padding-lg: 2rem;
+
+  --card-border-radius: var(--radius-lg);
+  --card-shadow: var(--shadow-sm);
+  --card-shadow-hover: var(--shadow-md);
+
+  /* ------
+     Input Tokens
+     ------ */
+  --input-height: 2.75rem;        /* 44px */
+  --input-padding-x: 1rem;
+  --input-padding-y: 0.75rem;
+  --input-border-radius: var(--radius-md);
+  --input-border-width: 1px;
+  --input-font-size: var(--text-base);
+
+  /* ------
+     Badge Tokens
+     ------ */
+  --badge-padding-x: 0.75rem;
+  --badge-padding-y: 0.375rem;
+  --badge-border-radius: var(--radius-full);
+  --badge-font-size: var(--text-xs);
+
+  /* ------
+     Header/Navbar Tokens
+     ------ */
+  --navbar-height: 4rem;          /* 64px */
+  --navbar-height-mobile: 3.5rem; /* 56px */
+
+  /* ------
+     Modal/Dialog Tokens
+     ------ */
+  --modal-border-radius: var(--radius-lg);
+  --modal-shadow: var(--shadow-xl);
+  --modal-backdrop-blur: blur(4px);
+
+  /* ------
+     Color Tokens for light mode surfaces
+     ------ */
+  --color-light-bg: #fafafa;
+  --color-light-surface: #ffffff;
+  --color-light-surface-alt: #f9fafb;
+  --color-light-border: rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================================================
+   UTILITY RESET
+   ============================================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--surface-app);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--line-height-normal);
+  transition: var(--transition-colors);
+}
+
+/* ============================================================================
+   ACCESSIBILITY - Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    --duration-fast: 0.01ms !important;
+    --duration-normal: 0.01ms !important;
+    --duration-slow: 0.01ms !important;
+    --duration-slower: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================================
+   FOCUS VISIBLE (Keyboard Navigation)
+   ============================================================================ */
+
+*:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
+}
+
+/* ============================================================================
+   SELECTION STATE
+   ============================================================================ */
+
+::selection {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* ============================================================================
+   SCROLLBAR STYLING
+   ============================================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-app);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-dark-surface-alt);
+  border-radius: 4px;
+  transition: background var(--duration-normal) var(--ease-out);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: var(--color-light-bg);
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* ============================================================================
+   FORM ELEMENTS
+   ============================================================================ */
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
+}
+
+/* ============================================================================
+   END OF THEME TOKENS
+   ============================================================================ */

@@ -1,0 +1,39 @@
+TASK: Extract entities from text.
+OUTPUT: ONLY valid JSON. NO markdown. NO code blocks. NO backticks. NO ARRAY - MUST BE OBJECT.
+
+ENTITY TYPES (ONLY these 4):
+- person: Individual human
+- organization: Company/institution/group entity
+- tool: Software, library, framework, technology
+- project: Specific initiative/product/named work
+
+REQUIRED JSON STRUCTURE:
+Your response MUST start with { and end with }
+Your response MUST have an "entities" key with an array value
+Each entity MUST have: name, type, description, confidence
+
+Example structure (EXACT FORMAT REQUIRED):
+{
+  "entities": [
+    {"name":"Alice","type":"person","description":"Works at Google","confidence":0.95},
+    {"name":"Google","type":"organization","description":"Tech company","confidence":0.95}
+  ]
+}
+
+VALIDATION (STRICT):
+1. Start with { - End with }
+2. "entities" key must be present
+3. "entities" value must be an array [...]
+4. Each entity is an object with: name, type, description, confidence
+5. No extra fields - only these 4 per entity
+6. No null values
+7. No trailing commas
+8. Valid JSON syntax
+9. Types EXACTLY: person|organization|tool|project
+10. Confidence 0.0-1.0
+
+TEXT TO EXTRACT FROM:
+The Kubernetes API server uses etcd for distributed consensus and stores configuration in ConfigMaps
+
+RESPOND WITH ONLY THIS JSON STRUCTURE (nothing else):
+{"entities":[{"name":"X","type":"person","description":"...","confidence":0.85}]}

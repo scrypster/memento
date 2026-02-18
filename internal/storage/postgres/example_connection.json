@@ -1,0 +1,20 @@
+{
+  "name": "postgres-example",
+  "display_name": "PostgreSQL Example",
+  "description": "Example PostgreSQL connection configuration",
+  "enabled": true,
+  "created_at": "2026-02-16T00:00:00Z",
+  "database": {
+    "type": "postgresql",
+    "host": "localhost",
+    "port": 5432,
+    "username": "memento",
+    "password": "your-password-here",
+    "database": "memento",
+    "sslmode": "disable"
+  },
+  "llm": {
+    "provider": "ollama",
+    "model": "qwen2.5:7b"
+  }
+}

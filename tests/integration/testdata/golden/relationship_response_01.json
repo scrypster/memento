@@ -1,0 +1,11 @@
+{
+  "relationships": [
+    {
+      "from": "ent:person:alice",
+      "to": "ent:person:bob",
+      "type": "knows",
+      "description": "Alice mentors Bob",
+      "confidence": 0.95
+    }
+  ]
+}

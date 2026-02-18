@@ -1,0 +1,1481 @@
+openapi: 3.0.3
+info:
+  title: Memento REST API
+  description: |
+    REST API for the Memento persistent memory system. Provides endpoints for managing memories,
+    searching, analyzing entities and relationships, and configuring connections.
+
+    The API supports multi-connection mode where different domains can use separate databases and LLM providers.
+    Connection can be specified via query parameter `?connection=name` or `X-Connection-ID` header.
+  version: 1.0.0
+  contact:
+    name: Memento Project
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://api.memento.local
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication (required in production mode)
+
+  schemas:
+    Memory:
+      type: object
+      required:
+        - id
+        - content
+        - source
+        - created_at
+        - updated_at
+        - status
+      properties:
+        id:
+          type: string
+          description: Unique memory ID in format mem:domain:uuid
+          example: mem:default:a1b2c3d4
+        content:
+          type: string
+          description: The memory content
+          example: "Claude Code is Anthropic's official CLI for Claude"
+        source:
+          type: string
+          description: Source of the memory (e.g., api, mcp, manual)
+          example: api
+        domain:
+          type: string
+          description: Domain/connection name for organizing memories
+          example: default
+        tags:
+          type: array
+          items:
+            type: string
+          description: Optional tags for categorization
+          example: [claude, tools, ai]
+        metadata:
+          type: object
+          description: Optional custom metadata
+          example: { project: "claude-code", version: "1.0" }
+        timestamp:
+          type: string
+          format: date-time
+          description: When the memory event occurred
+        created_at:
+          type: string
+          format: date-time
+          description: When the memory was created in the system
+        updated_at:
+          type: string
+          format: date-time
+          description: When the memory was last updated
+        status:
+          type: string
+          enum: [pending, processing, enriched, failed]
+          description: Overall memory processing status
+          example: enriched
+        entity_status:
+          type: string
+          enum: [pending, processing, completed, failed, skipped]
+          description: Status of entity extraction enrichment
+        relationship_status:
+          type: string
+          enum: [pending, processing, completed, failed, skipped]
+          description: Status of relationship extraction enrichment
+        embedding_status:
+          type: string
+          enum: [pending, processing, completed, failed, skipped]
+          description: Status of embedding generation
+
+    PaginatedMemories:
+      type: object
+      required:
+        - items
+        - total
+        - page
+        - page_size
+        - has_more
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Memory"
+        total:
+          type: integer
+          description: Total number of memories
+        page:
+          type: integer
+          description: Current page number (1-indexed)
+        page_size:
+          type: integer
+          description: Number of items per page
+        has_more:
+          type: boolean
+          description: Whether there are more pages available
+
+    UnifiedSearchResult:
+      type: object
+      required:
+        - type
+        - id
+      properties:
+        type:
+          type: string
+          enum: [memory, entity, relationship]
+          description: Type of search result
+        id:
+          type: string
+          description: Resource ID
+        name:
+          type: string
+          description: Name (for entities)
+        content:
+          type: string
+          description: Content preview (for memories)
+        description:
+          type: string
+          description: Description (for entities and relationships)
+        source:
+          type: string
+          description: Source (for memories)
+        created_at:
+          type: string
+          description: Creation timestamp
+        relevance:
+          type: number
+          format: double
+          description: Relevance score (0.0-1.0)
+
+    SearchResponse:
+      type: object
+      required:
+        - query
+        - results
+        - total
+        - page
+        - page_size
+        - has_more
+      properties:
+        query:
+          type: string
+          description: The search query
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnifiedSearchResult"
+        total:
+          type: integer
+          description: Total number of memory results (excludes supplemental entity/relationship results)
+        page:
+          type: integer
+          description: Current page number
+        page_size:
+          type: integer
+          description: Results per page
+        has_more:
+          type: boolean
+          description: Whether there are more pages of memory results
+
+    StatsResponse:
+      type: object
+      required:
+        - memories
+        - entities
+        - relationships
+        - queue_size
+      properties:
+        memories:
+          type: integer
+          description: Total number of memories
+        entities:
+          type: integer
+          description: Total number of extracted entities
+        relationships:
+          type: integer
+          description: Total number of extracted relationships
+        queue_size:
+          type: integer
+          description: Current enrichment queue size
+
+    ActivityPoint:
+      type: object
+      required:
+        - time
+        - count
+      properties:
+        time:
+          type: string
+          format: date-time
+          description: ISO-8601 bucket start timestamp
+        count:
+          type: integer
+          description: Number of memories created in this bucket
+
+    ActivityResponse:
+      type: object
+      required:
+        - points
+        - range
+        - bucket_sec
+      properties:
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityPoint"
+        range:
+          type: string
+          description: Time range requested (5min, 1hour, 24hour, week)
+          example: 24hour
+        bucket_sec:
+          type: integer
+          description: Bucket size in seconds
+
+    Entity:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - created_at
+        - memory_count
+      properties:
+        id:
+          type: string
+          description: Unique entity ID
+        name:
+          type: string
+          description: Entity name
+        type:
+          type: string
+          description: Entity type (person, organization, project, location, event, etc.)
+        description:
+          type: string
+          description: Optional description
+        created_at:
+          type: string
+          description: Creation timestamp
+        memory_count:
+          type: integer
+          description: Number of memories this entity appears in
+
+    EntitiesListResponse:
+      type: object
+      required:
+        - items
+        - total
+        - page
+        - page_size
+        - has_more
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Entity"
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        has_more:
+          type: boolean
+
+    Relationship:
+      type: object
+      required:
+        - id
+        - source_name
+        - source_type
+        - target_name
+        - target_type
+        - type
+        - weight
+        - created_at
+      properties:
+        id:
+          type: string
+        source_name:
+          type: string
+        source_type:
+          type: string
+        target_name:
+          type: string
+        target_type:
+          type: string
+        type:
+          type: string
+          description: Relationship type (uses, knows, manages, works_on, etc.)
+        weight:
+          type: number
+          format: double
+          description: Relationship strength (0.0-1.0)
+        created_at:
+          type: string
+
+    RelationshipsListResponse:
+      type: object
+      required:
+        - items
+        - total
+        - page
+        - page_size
+        - has_more
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Relationship"
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        has_more:
+          type: boolean
+
+    GraphNode:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - memory_count
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        memory_count:
+          type: integer
+
+    GraphEdge:
+      type: object
+      required:
+        - id
+        - source
+        - target
+        - type
+        - weight
+      properties:
+        id:
+          type: string
+        source:
+          type: string
+        target:
+          type: string
+        type:
+          type: string
+        weight:
+          type: number
+          format: double
+
+    GraphMeta:
+      type: object
+      required:
+        - center_id
+        - depth
+        - node_count
+        - edge_count
+      properties:
+        center_id:
+          type: string
+        depth:
+          type: integer
+        node_count:
+          type: integer
+        edge_count:
+          type: integer
+
+    GraphResponse:
+      type: object
+      required:
+        - nodes
+        - edges
+        - meta
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/GraphNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/GraphEdge"
+        meta:
+          $ref: "#/components/schemas/GraphMeta"
+
+    Connection:
+      type: object
+      required:
+        - name
+        - display_name
+        - enabled
+        - created_at
+      properties:
+        name:
+          type: string
+          description: Connection identifier
+        display_name:
+          type: string
+          description: Human-readable name
+        description:
+          type: string
+          description: Optional description
+        enabled:
+          type: boolean
+        created_at:
+          type: string
+        database:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [sqlite, postgresql]
+            path:
+              type: string
+              description: For SQLite, the file path
+            host:
+              type: string
+              description: For PostgreSQL
+            port:
+              type: integer
+              description: For PostgreSQL
+            user:
+              type: string
+              description: For PostgreSQL
+            database:
+              type: string
+              description: For PostgreSQL
+        llm:
+          type: object
+          properties:
+            provider:
+              type: string
+              enum: [ollama, openai, anthropic]
+            base_url:
+              type: string
+            model:
+              type: string
+            api_key:
+              type: string
+              description: Masked in responses
+
+    ListConnectionsResponse:
+      type: object
+      required:
+        - connections
+        - default_connection
+      properties:
+        connections:
+          type: array
+          items:
+            $ref: "#/components/schemas/Connection"
+        default_connection:
+          type: string
+          description: Name of the default connection
+
+    UserConfig:
+      type: object
+      properties:
+        user_name:
+          type: string
+          description: Current user name
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - version
+      properties:
+        status:
+          type: string
+          example: healthy
+        version:
+          type: string
+          example: "1.0.0"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: HTTP status code as string
+        details:
+          type: object
+          description: Additional error details
+
+paths:
+  /api/health:
+    get:
+      summary: Health check endpoint
+      description: Check if the API is running and healthy. No authentication required.
+      operationId: getHealth
+      tags:
+        - System
+      security: []
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/memories:
+    get:
+      summary: List memories with pagination and filtering
+      description: |
+        Returns a paginated list of memories. Supports filtering by status, domain, and sorting.
+        Connection can be specified via ?connection=name or X-Connection-ID header.
+      operationId: listMemories
+      tags:
+        - Memories
+      parameters:
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Items per page (max 1000)
+          schema:
+            type: integer
+            default: 10
+        - name: sort_by
+          in: query
+          description: Sort field (created_at, updated_at, id, status, decay_score, access_count)
+          schema:
+            type: string
+            default: created_at
+        - name: sort_order
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [pending, processing, enriched, failed]
+        - name: domain
+          in: query
+          description: Filter by domain
+          schema:
+            type: string
+        - name: connection
+          in: query
+          description: Connection name (or use X-Connection-ID header)
+          schema:
+            type: string
+        - name: X-Connection-ID
+          in: header
+          description: Connection name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of memories
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedMemories"
+        "400":
+          description: Invalid connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      summary: Create a new memory
+      description: |
+        Creates a new memory with pending status. Enrichment (entities, relationships, embeddings)
+        happens asynchronously. Connection can be specified via query parameter, header, or request body.
+      operationId: createMemory
+      tags:
+        - Memories
+      parameters:
+        - name: connection
+          in: query
+          description: Connection name
+          schema:
+            type: string
+        - name: X-Connection-ID
+          in: header
+          description: Connection name
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  description: Memory content
+                source:
+                  type: string
+                  description: Source identifier (defaults to "api")
+                  default: api
+                domain:
+                  type: string
+                  description: Domain for organizing memories
+                connection_id:
+                  type: string
+                  description: Connection name (alternative to query parameter)
+                tags:
+                  type: array
+                  items:
+                    type: string
+                metadata:
+                  type: object
+                timestamp:
+                  type: string
+                  format: date-time
+                  description: Custom timestamp for when the memory occurred
+      responses:
+        "201":
+          description: Memory created (with pending status)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Memory"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/memories/{id}:
+    get:
+      summary: Get a single memory by ID
+      operationId: getMemory
+      tags:
+        - Memories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Memory ID (e.g., mem:default:a1b2c3d4)
+          schema:
+            type: string
+        - name: connection
+          in: query
+          description: Connection name
+          schema:
+            type: string
+        - name: X-Connection-ID
+          in: header
+          description: Connection name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Memory details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Memory"
+        "400":
+          description: Invalid connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Memory not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      summary: Update a memory
+      description: Partial update - only provided fields are updated
+      operationId: updateMemory
+      tags:
+        - Memories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connection
+          in: query
+          description: Connection name
+          schema:
+            type: string
+        - name: X-Connection-ID
+          in: header
+          description: Connection name
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                source:
+                  type: string
+                domain:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                metadata:
+                  type: object
+      responses:
+        "200":
+          description: Updated memory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Memory"
+        "400":
+          description: Invalid request or connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Memory not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      summary: Delete a memory
+      operationId: deleteMemory
+      tags:
+        - Memories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connection
+          in: query
+          description: Connection name
+          schema:
+            type: string
+        - name: X-Connection-ID
+          in: header
+          description: Connection name
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Memory deleted successfully
+        "400":
+          description: Invalid connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Memory not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/search:
+    get:
+      summary: Full-text search across memories, entities, and relationships
+      description: |
+        Searches memories using FTS5 (SQLite) or tsvector (PostgreSQL).
+        Also returns matching entities and relationships as supplemental results.
+        Connection can be specified via query parameter or X-Connection-ID header.
+      operationId: search
+      tags:
+        - Search
+      parameters:
+        - name: q
+          in: query
+          description: Search query (optional - omit to browse all memories)
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: Results per page (1-100)
+          schema:
+            type: integer
+            default: 20
+        - name: connection
+          in: query
+          description: Connection name
+          schema:
+            type: string
+        - name: X-Connection-ID
+          in: header
+          description: Connection name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        "400":
+          description: Invalid connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/stats:
+    get:
+      summary: Get system statistics
+      description: Returns counts of memories, entities, relationships, and queue depth
+      operationId: getStats
+      tags:
+        - System
+      parameters:
+        - name: connection
+          in: query
+          description: Connection name
+          schema:
+            type: string
+        - name: X-Connection-ID
+          in: header
+          description: Connection name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: System statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsResponse"
+        "400":
+          description: Invalid connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/activity:
+    get:
+      summary: Get memory creation activity time series
+      description: |
+        Returns time-bucketed counts of memory creation over a specified range.
+        SQLite connections only.
+      operationId: getActivity
+      tags:
+        - Analytics
+      parameters:
+        - name: range
+          in: query
+          description: Time range for activity data
+          schema:
+            type: string
+            enum: [5min, 1hour, 24hour, week]
+            default: 24hour
+        - name: connection
+          in: query
+          description: Connection name
+          schema:
+            type: string
+        - name: X-Connection-ID
+          in: header
+          description: Connection name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Activity data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityResponse"
+        "400":
+          description: Invalid connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/entities:
+    get:
+      summary: List extracted entities with pagination
+      description: Returns paginated list of entities with optional search and type filtering
+      operationId: listEntities
+      tags:
+        - Entities
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          description: Search entity by name or description
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Filter by entity type
+          schema:
+            type: string
+        - name: connection
+          in: query
+          description: Connection name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of entities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntitiesListResponse"
+        "400":
+          description: Invalid connection or request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/entities/{id}/graph:
+    get:
+      summary: Get entity's relationship graph
+      description: |
+        Returns the entity and its connected neighbors as a graph (nodes and edges).
+        Supports up to 3 levels of traversal depth.
+      operationId: getEntityGraph
+      tags:
+        - Entities
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Entity ID
+          schema:
+            type: string
+        - name: depth
+          in: query
+          description: Graph traversal depth (1-3)
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+            maximum: 3
+        - name: connection
+          in: query
+          description: Connection name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Entity graph
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GraphResponse"
+        "400":
+          description: Invalid connection or request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/relationships:
+    get:
+      summary: List extracted relationships with pagination
+      description: Returns paginated list of relationships with optional search and type filtering
+      operationId: listRelationships
+      tags:
+        - Relationships
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          description: Search relationships by entity names
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Filter by relationship type
+          schema:
+            type: string
+        - name: connection
+          in: query
+          description: Connection name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of relationships
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RelationshipsListResponse"
+        "400":
+          description: Invalid connection or request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/connections:
+    get:
+      summary: List all available connections
+      description: Returns all configured connections and the default connection name
+      operationId: listConnections
+      tags:
+        - Connections
+      responses:
+        "200":
+          description: List of connections
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListConnectionsResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      summary: Create a new connection
+      description: Creates a new database and LLM provider connection
+      operationId: createConnection
+      tags:
+        - Connections
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - display_name
+                - database
+                - llm
+              properties:
+                name:
+                  type: string
+                  description: Connection identifier
+                display_name:
+                  type: string
+                  description: Human-readable name
+                description:
+                  type: string
+                database:
+                  type: object
+                  required:
+                    - type
+                  properties:
+                    type:
+                      type: string
+                      enum: [sqlite, postgresql]
+                    path:
+                      type: string
+                      description: SQLite file path
+                    host:
+                      type: string
+                      description: PostgreSQL host
+                    port:
+                      type: integer
+                      description: PostgreSQL port
+                    user:
+                      type: string
+                      description: PostgreSQL user
+                    password:
+                      type: string
+                      description: PostgreSQL password
+                    database:
+                      type: string
+                      description: PostgreSQL database name
+                llm:
+                  type: object
+                  required:
+                    - provider
+                    - model
+                  properties:
+                    provider:
+                      type: string
+                      enum: [ollama, openai, anthropic]
+                    base_url:
+                      type: string
+                    model:
+                      type: string
+                    api_key:
+                      type: string
+      responses:
+        "201":
+          description: Connection created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Connection"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/connections/test:
+    post:
+      summary: Test a connection configuration
+      description: Tests database and LLM connectivity without saving
+      operationId: testConnection
+      tags:
+        - Connections
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - database
+                - llm
+              properties:
+                database:
+                  type: object
+                llm:
+                  type: object
+      responses:
+        "200":
+          description: Test result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  error:
+                    type: string
+
+  /api/connections/default:
+    post:
+      summary: Set the default connection
+      operationId: setDefaultConnection
+      tags:
+        - Connections
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+      responses:
+        "200":
+          description: Default connection updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  default_connection:
+                    type: string
+
+    put:
+      summary: Update the default connection configuration
+      operationId: updateConnection
+      tags:
+        - Connections
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name:
+                  type: string
+                description:
+                  type: string
+                database:
+                  type: object
+                llm:
+                  type: object
+      responses:
+        "200":
+          description: Connection updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Connection"
+
+  /api/connections/{name}:
+    put:
+      summary: Update a connection configuration
+      operationId: updateNamedConnection
+      tags:
+        - Connections
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name:
+                  type: string
+                description:
+                  type: string
+                database:
+                  type: object
+                llm:
+                  type: object
+      responses:
+        "200":
+          description: Connection updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Connection"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      summary: Delete a connection
+      operationId: deleteConnection
+      tags:
+        - Connections
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Connection deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/config/user:
+    get:
+      summary: Get user configuration
+      operationId: getUserConfig
+      tags:
+        - Configuration
+      responses:
+        "200":
+          description: User configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserConfig"
+
+    post:
+      summary: Update user configuration
+      operationId: postUserConfig
+      tags:
+        - Configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserConfig"
+      responses:
+        "200":
+          description: Updated user configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserConfig"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+tags:
+  - name: System
+    description: System health and general endpoints
+  - name: Memories
+    description: Memory CRUD operations
+  - name: Search
+    description: Full-text search across memories and entities
+  - name: Analytics
+    description: Activity and statistics endpoints
+  - name: Entities
+    description: Entity extraction and graph queries
+  - name: Relationships
+    description: Relationship extraction and queries
+  - name: Connections
+    description: Database and LLM provider connection management
+  - name: Configuration
+    description: User and system configuration

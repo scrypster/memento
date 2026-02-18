@@ -1,0 +1,79 @@
+# Binaries
+/memento
+/memento-mcp
+/memento-web
+/memento-setup
+/memento-test
+/memento-go
+/verify-chunker
+/bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+*.out
+
+# Go workspace
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.worktrees/
+
+# Data and backups
+/data/
+/backups/
+/ollama-models/
+memento.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Dependencies (Go vendor directory, not web/static/vendor)
+/vendor/
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Web UI build tooling (Tailwind)
+tailwind.config.js
+postcss.config.js
+vite.config.js
+package.json
+
+# Web UI - Generated assets (keep .gitkeep files)
+web/static/vendor/*.js
+!web/static/vendor/.gitkeep
+web/static/css/tailwind.min.css
+web/static/css/input.css
+!web/static/css/.gitkeep
+
+# Docker
+docker-compose.override.yml
+
+# Runtime logs
+server.log
+*.log
+
+# Local runtime config (contains credentials)
+config/connections.json
+
+# Working directory (planning, research, scratch files)
+.work/
+
+# Development artifacts
+*.bak
+.claude/
+
+# Build output
+/dist/

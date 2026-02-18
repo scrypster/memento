@@ -1,0 +1,127 @@
+# Memento Memory
+
+Persistent cross-session memory for Claude Code via MCP.
+
+> MCP server: `{{MCP_BINARY_PATH}}`
+> Data: `{{DATA_DIR}}`
+
+## When to use
+
+**Store** when the user states preferences, makes decisions, describes architecture, or shares context that should persist across sessions:
+
+```
+Store: MJ prefers tabs over spaces in all Go projects
+Store: This project uses PostgreSQL — decided for connection pooling
+Store: Deploy target is AWS us-east-1 on ECS Fargate
+```
+
+**Recall** before making recommendations, when starting a session, or when the user asks about past context:
+
+```
+Recall: What database does this project use?
+Recall: What are MJ's preferences for error handling?
+```
+
+## Tools
+
+### store_memory
+Store a new memory. Enrichment (entity extraction, tags) runs asynchronously in the background.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `content` | string | ✓ | The memory to store |
+| `tags` | string[] | — | Categorization tags |
+| `connection_id` | string | — | Target a specific workspace connection |
+| `source` | string | — | Where this memory came from |
+
+### recall_memory
+Retrieve memories. Three modes based on which params are set:
+- `id` set → direct lookup by ID
+- `query` set → full-text search (use this for natural-language lookups)
+- neither → paginated list with optional filters
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `id` | string | — | Memory ID for direct lookup |
+| `query` | string | — | Natural-language search query |
+| `state` | string | — | Filter by state: `active`, `archived`, `superseded` |
+| `created_after` | string | — | RFC-3339 lower bound |
+| `created_before` | string | — | RFC-3339 upper bound |
+| `limit` | integer | — | Max results (default 10) |
+| `page` | integer | — | Page number in list mode (default 1) |
+
+### find_related
+Full-text search across all memories. Returns ranked results.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `query` | string | ✓ | Search query |
+| `limit` | integer | — | Max results (default 10) |
+| `domain` | string | — | Restrict to this domain |
+
+### update_memory
+Correct or refine an existing memory's content, tags, or metadata.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `id` | string | ✓ | Memory ID to update |
+| `content` | string | — | New content (replaces existing) |
+| `tags` | string[] | — | New tags (replaces existing) |
+| `metadata` | object | — | New metadata (replaces existing) |
+
+### update_memory_state
+Change the lifecycle state of a memory.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `id` | string | ✓ | Memory ID |
+| `state` | string | ✓ | New state: `active`, `archived`, `superseded` |
+
+### detect_contradictions
+Scan the memory graph for conflicting memories.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `memory_id` | string | — | Focus on one memory, or omit to scan all |
+
+### explain_reasoning
+Explain why specific memories were retrieved for a query — shows term matching per memory.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `query` | string | ✓ | The original search query |
+| `memory_ids` | string[] | ✓ | Memory IDs to explain |
+
+### retry_enrichment
+Retry enrichment for a memory stuck in `failed` status.
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `id` | string | ✓ | Memory ID |
+
+## Memory status values
+
+| Status | Meaning |
+|---|---|
+| `pending` | Stored, enrichment queued |
+| `processing` | Enrichment running |
+| `enriched` | Entities and relationships extracted |
+| `failed` | Enrichment failed — use `retry_enrichment` |
+| `active` | Manually confirmed active |
+| `archived` | Hidden but preserved |
+| `superseded` | Replaced by a newer memory |
+
+## Enrichment note
+
+Enrichment (entity/relationship extraction) runs via **Ollama** locally — no cloud API key required. Default: `http://localhost:11434` with model `qwen2.5:7b`. Override with env vars:
+
+```
+MEMENTO_OLLAMA_URL=http://localhost:11434
+MEMENTO_OLLAMA_MODEL=phi3
+```
+
+Memories are fully searchable immediately after storing, even before enrichment completes.
+
+## Install
+
+Copy this file to `~/.claude/skills/memento.md`, then restart Claude Code.

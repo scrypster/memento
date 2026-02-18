@@ -1,0 +1,45 @@
+---
+description: Use Memento MCP tools to store and recall memories, decisions, and context across sessions.
+alwaysApply: true
+---
+
+# Memento Memory System
+
+You have access to a persistent memory system via Memento MCP tools. Use these tools proactively to store important context and recall past decisions.
+
+## When to store memories
+
+Store memories when the user:
+- States a preference, constraint, or decision ("use PostgreSQL", "always use tabs", "deploy to AWS")
+- Describes project architecture or technical choices
+- Mentions team members, roles, or relationships
+- Sets a requirement or goal for the project
+- Shares information they'll need later ("my API key expires on March 1")
+
+Prefix: "Storing to memory..." before calling store_memory.
+
+## When to recall memories
+
+Recall memories when:
+- Starting a new session or opening a file you haven't seen recently
+- The user asks about past decisions or context
+- You're about to make a technical recommendation (check for relevant past decisions first)
+- You see a pattern that might conflict with something previously established
+
+## Available MCP Tools
+
+- **store_memory** — Store a new memory. Required: `content`. Optional: `tags`, `connection_id`.
+- **recall_memory** — Search memories. Required: `query`. Optional: `limit`, `min_confidence`, `connection_id`.
+- **find_related** — Graph traversal from a memory. Required: `memory_id`. Optional: `max_hops`, `limit`.
+- **detect_contradictions** — Find conflicting memories. Optional: `memory_id`, `threshold`.
+- **explain_reasoning** — Show how a conclusion was reached. Required: `conclusion`.
+- **update_memory_state** — Archive or supersede a memory. Required: `memory_id`, `state`.
+
+## Connection routing
+
+The default connection is used automatically. To target a specific workspace, pass `connection_id` to any tool call.
+
+## Server
+
+Memento is running at `{{SERVER_URL}}:{{PORT}}`.
+Data directory: `{{DATA_DIR}}`

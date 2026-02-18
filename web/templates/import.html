@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memento - Import</title>
+  <link rel="stylesheet" href="/static/css/tailwind.min.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/vendor/alpine-3.14.9.min.js" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Navigation -->
+  <nav class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-4">
+          <a href="/" class="text-xl font-bold text-gray-900">Memento</a>
+          <span class="text-gray-400">/</span>
+          <span class="text-gray-700 font-medium">Import</span>
+        </div>
+        <a href="/" class="text-sm text-blue-600 hover:text-blue-800">Back to Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="importApp()" x-init="init()">
+
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">Import Knowledge Base</h2>
+    <p class="text-gray-600 mb-8">
+      Import notes from an Obsidian vault, Notion export, or any Markdown folder.
+      Each Markdown file becomes a memory with tags, domain, and relationships extracted automatically.
+    </p>
+
+    <!-- Import Type Tabs -->
+    <div class="flex space-x-1 mb-6 bg-gray-200 p-1 rounded-lg w-fit">
+      <button @click="importType = 'obsidian'"
+              :class="importType === 'obsidian' ? 'bg-white shadow text-gray-900' : 'text-gray-600'"
+              class="px-4 py-2 rounded-md text-sm font-medium transition">
+        Obsidian Vault
+      </button>
+      <button @click="importType = 'markdown'"
+              :class="importType === 'markdown' ? 'bg-white shadow text-gray-900' : 'text-gray-600'"
+              class="px-4 py-2 rounded-md text-sm font-medium transition">
+        Markdown Folder
+      </button>
+    </div>
+
+    <!-- Import Form -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6" x-show="!jobId">
+      <div class="space-y-4">
+
+        <!-- Path Input -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <span x-show="importType === 'obsidian'">Obsidian Vault Path</span>
+            <span x-show="importType === 'markdown'">Markdown Folder Path</span>
+          </label>
+          <input type="text"
+                 x-model="dirPath"
+                 placeholder="/path/to/your/vault"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm">
+          <p class="mt-1 text-xs text-gray-500">
+            Enter the absolute server-side path to the directory containing your Markdown files.
+          </p>
+        </div>
+
+        <!-- Info Box -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+          <p class="font-medium mb-1">What gets imported:</p>
+          <ul class="list-disc list-inside space-y-1 text-blue-700">
+            <li>All <code class="bg-blue-100 px-1 rounded">.md</code> and <code class="bg-blue-100 px-1 rounded">.markdown</code> files (recursive)</li>
+            <li>YAML frontmatter: tags, date, category, domain</li>
+            <li>Inline <code class="bg-blue-100 px-1 rounded">#hashtags</code></li>
+            <li>Wiki-link relationships (<code class="bg-blue-100 px-1 rounded">[[linked note]]</code>)</li>
+            <li>Directory structure mapped to domain/category</li>
+          </ul>
+          <p class="mt-2 text-blue-600">Hidden directories (e.g. <code class="bg-blue-100 px-1 rounded">.obsidian</code>) are automatically skipped.</p>
+        </div>
+
+        <!-- Start Button -->
+        <button @click="startImport()"
+                :disabled="!dirPath.trim() || importing"
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium">
+          <span x-show="!importing">Start Import</span>
+          <span x-show="importing">Starting...</span>
+        </button>
+
+        <!-- Error -->
+        <div x-show="error" class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800" x-text="error"></div>
+      </div>
+    </div>
+
+    <!-- Progress Section -->
+    <div x-show="jobId" class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Import Progress</h3>
+
+      <!-- Status Badge -->
+      <div class="flex items-center space-x-3 mb-4">
+        <span class="px-3 py-1 rounded-full text-sm font-medium"
+              :class="{
+                'bg-yellow-100 text-yellow-800': progress.status === 'running',
+                'bg-green-100 text-green-800': progress.status === 'complete',
+                'bg-red-100 text-red-800': progress.status === 'failed'
+              }"
+              x-text="progress.status === 'running' ? 'Running...' : progress.status === 'complete' ? 'Complete' : 'Failed'">
+        </span>
+        <span class="text-sm text-gray-600" x-text="progress.message || ''"></span>
+      </div>
+
+      <!-- Progress Bar -->
+      <div x-show="progress.files_total > 0" class="mb-4">
+        <div class="flex justify-between text-sm text-gray-600 mb-1">
+          <span x-text="`${progress.files_processed} of ${progress.files_total} files`"></span>
+          <span x-text="`${Math.round((progress.files_processed / progress.files_total) * 100)}%`"></span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-3">
+          <div class="bg-blue-600 h-3 rounded-full transition-all duration-300"
+               :style="`width: ${Math.round((progress.files_processed / progress.files_total) * 100)}%`">
+          </div>
+        </div>
+        <p x-show="progress.current_file"
+           class="mt-1 text-xs text-gray-500 font-mono truncate"
+           x-text="'Processing: ' + progress.current_file">
+        </p>
+      </div>
+
+      <!-- Result Stats -->
+      <div x-show="result" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+        <div class="bg-gray-50 rounded-lg p-4 text-center">
+          <p class="text-2xl font-bold text-gray-900" x-text="result && result.files_found || 0"></p>
+          <p class="text-xs text-gray-500">Files Found</p>
+        </div>
+        <div class="bg-green-50 rounded-lg p-4 text-center">
+          <p class="text-2xl font-bold text-green-700" x-text="result && result.memories_created || 0"></p>
+          <p class="text-xs text-gray-500">Memories Created</p>
+        </div>
+        <div class="bg-blue-50 rounded-lg p-4 text-center">
+          <p class="text-2xl font-bold text-blue-700" x-text="result && result.relationships_found || 0"></p>
+          <p class="text-xs text-gray-500">Relationships Found</p>
+        </div>
+        <div class="bg-yellow-50 rounded-lg p-4 text-center">
+          <p class="text-2xl font-bold text-yellow-700" x-text="result && result.files_skipped || 0"></p>
+          <p class="text-xs text-gray-500">Files Skipped</p>
+        </div>
+        <div class="bg-red-50 rounded-lg p-4 text-center">
+          <p class="text-2xl font-bold text-red-700" x-text="result && result.files_failed || 0"></p>
+          <p class="text-xs text-gray-500">Files Failed</p>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-4 text-center">
+          <p class="text-2xl font-bold text-gray-700" x-text="result ? Math.round(result.duration_ms / 1e6) + 'ms' : '—'"></p>
+          <p class="text-xs text-gray-500">Duration</p>
+        </div>
+      </div>
+
+      <!-- Errors -->
+      <div x-show="result && result.errors && result.errors.length > 0" class="mb-4">
+        <details class="border border-red-200 rounded-lg">
+          <summary class="px-4 py-2 text-sm font-medium text-red-700 cursor-pointer">
+            Errors (<span x-text="result && result.errors ? result.errors.length : 0"></span>)
+          </summary>
+          <div class="px-4 py-2 max-h-48 overflow-y-auto">
+            <template x-for="(err, i) in (result && result.errors || [])" :key="i">
+              <p class="text-xs font-mono text-red-600 py-0.5 border-b border-red-100" x-text="err"></p>
+            </template>
+          </div>
+        </details>
+      </div>
+
+      <!-- Actions after completion -->
+      <div x-show="progress.status === 'complete' || progress.status === 'failed'" class="flex space-x-3">
+        <button @click="resetForm()"
+                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm">
+          Import Another
+        </button>
+        <a href="/#/feed"
+           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
+          View Memories
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    function importApp() {
+      return {
+        importType: 'obsidian',
+        dirPath: '',
+        jobId: null,
+        importing: false,
+        error: '',
+        progress: {},
+        result: null,
+        pollInterval: null,
+
+        init() {
+          // Nothing to initialise on load.
+        },
+
+        async startImport() {
+          this.error = '';
+          this.importing = true;
+          const endpoint = this.importType === 'obsidian'
+            ? '/api/import/obsidian'
+            : '/api/import/markdown';
+
+          try {
+            const resp = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: this.dirPath.trim() })
+            });
+            if (!resp.ok) {
+              const body = await resp.json().catch(() => ({}));
+              throw new Error(body.error || `HTTP ${resp.status}`);
+            }
+            const data = await resp.json();
+            this.jobId = data.job_id;
+            this.startPolling();
+          } catch (err) {
+            this.error = err.message;
+          } finally {
+            this.importing = false;
+          }
+        },
+
+        startPolling() {
+          this.pollInterval = setInterval(() => this.pollStatus(), 1000);
+        },
+
+        async pollStatus() {
+          if (!this.jobId) return;
+          try {
+            const resp = await fetch(`/api/import/status/${this.jobId}`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+
+            if (data.progress) {
+              // Complete response with nested progress + result.
+              this.progress = data.progress;
+              this.result = data.result;
+            } else {
+              // Still running - top-level is the progress object.
+              this.progress = data;
+            }
+
+            if (this.progress.status === 'complete' || this.progress.status === 'failed') {
+              clearInterval(this.pollInterval);
+            }
+          } catch (err) {
+            console.warn('Poll error:', err);
+          }
+        },
+
+        resetForm() {
+          clearInterval(this.pollInterval);
+          this.jobId = null;
+          this.progress = {};
+          this.result = null;
+          this.error = '';
+          this.importing = false;
+        }
+      };
+    }
+  </script>
+</body>
+</html>

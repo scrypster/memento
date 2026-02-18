@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memento - Recall Debugger</title>
+  <link rel="stylesheet" href="/static/css/tailwind.min.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/vendor/alpine-3.14.9.min.js" defer></script>
+  <style>
+    .score-bar { height: 8px; border-radius: 4px; transition: width 0.3s ease; }
+    .badge-included { background: #d1fae5; color: #065f46; }
+    .badge-filtered  { background: #fee2e2; color: #991b1b; }
+    .badge-candidate { background: #fef9c3; color: #713f12; }
+    details > summary { cursor: pointer; user-select: none; }
+    details[open] > summary { font-weight: 600; }
+  </style>
+</head>
+<body x-data="debugApp" x-init="init()" class="bg-gray-100 min-h-screen">
+
+  <!-- Navigation Bar -->
+  <nav class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-4">
+          <a href="/" class="text-xl font-bold text-gray-900">Memento</a>
+          <span class="text-gray-400">/</span>
+          <span class="text-gray-700 font-medium">Recall Debugger</span>
+        </div>
+        <a href="/" class="text-sm text-blue-600 hover:underline">Back to Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Query Form -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4">Debug a Recall Query</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Search Query</label>
+          <input type="text"
+                 x-model="form.query"
+                 @keydown.enter="runTrace()"
+                 placeholder="e.g. project goals"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Domain / State Filter</label>
+          <input type="text"
+                 x-model="form.state"
+                 placeholder="e.g. work (optional)"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Min Score (0.0 – 1.0)</label>
+          <input type="number" step="0.01" min="0" max="1"
+                 x-model.number="form.minScore"
+                 placeholder="0.0"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Limit</label>
+          <input type="number" min="1" max="100"
+                 x-model.number="form.limit"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="flex items-end">
+          <button @click="runTrace()"
+                  :disabled="loading"
+                  class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
+            <span x-show="!loading">Run Trace</span>
+            <span x-show="loading">Running...</span>
+          </button>
+        </div>
+      </div>
+      <div x-show="error" class="mt-3 text-sm text-red-600" x-text="error"></div>
+    </div>
+
+    <!-- Results (shown only after a trace has run) -->
+    <div x-show="result" x-transition>
+
+      <!-- Summary Banner -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <p class="text-gray-500 text-xs mb-1">Candidates Found</p>
+          <p class="text-3xl font-bold text-gray-900" x-text="result?.candidates_found ?? 0"></p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <p class="text-gray-500 text-xs mb-1">Scored</p>
+          <p class="text-3xl font-bold text-yellow-600" x-text="result?.scored_results?.length ?? 0"></p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <p class="text-gray-500 text-xs mb-1">Returned</p>
+          <p class="text-3xl font-bold text-green-600" x-text="result?.returned?.length ?? 0"></p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <p class="text-gray-500 text-xs mb-1">Filtered Out</p>
+          <p class="text-3xl font-bold text-red-600" x-text="result?.filtered_out?.length ?? 0"></p>
+        </div>
+      </div>
+
+      <!-- Timing & Query Params -->
+      <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <div class="flex flex-wrap gap-6 text-sm text-gray-700">
+          <div>
+            <span class="font-medium">Query:</span>
+            <span class="ml-1 font-mono bg-gray-100 px-2 py-0.5 rounded" x-text="result?.query_params?.query || '(empty)'"></span>
+          </div>
+          <template x-if="result?.query_params?.domain">
+            <div>
+              <span class="font-medium">Domain:</span>
+              <span class="ml-1 font-mono bg-gray-100 px-2 py-0.5 rounded" x-text="result?.query_params?.domain"></span>
+            </div>
+          </template>
+          <template x-if="result?.query_params?.min_score">
+            <div>
+              <span class="font-medium">Min Score:</span>
+              <span class="ml-1 font-mono bg-gray-100 px-2 py-0.5 rounded" x-text="result?.query_params?.min_score"></span>
+            </div>
+          </template>
+          <div>
+            <span class="font-medium">Timing:</span>
+            <span class="ml-1 font-mono bg-gray-100 px-2 py-0.5 rounded" x-text="(result?.timing_ms ?? 0) + ' ms'"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scored Results (included) -->
+      <div class="bg-white rounded-lg shadow mb-6">
+        <div class="px-6 py-4 border-b flex justify-between items-center">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Scored Candidates
+            <span class="text-sm font-normal text-gray-500 ml-2">
+              (green = returned, yellow = scored but not in page)
+            </span>
+          </h3>
+        </div>
+        <div class="divide-y">
+          <template x-if="!result?.scored_results?.length">
+            <div class="px-6 py-8 text-center text-gray-500">No scored candidates.</div>
+          </template>
+          <template x-for="entry in result?.scored_results" :key="entry.memory_id">
+            <details class="px-6 py-4">
+              <summary class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="text-xs px-2 py-0.5 rounded font-medium"
+                        :class="isReturned(entry.memory_id) ? 'badge-included' : 'badge-candidate'"
+                        x-text="isReturned(entry.memory_id) ? 'INCLUDED' : 'CONSIDERED'">
+                  </span>
+                  <span class="font-mono text-sm text-gray-800" x-text="entry.memory_id"></span>
+                </div>
+                <div class="flex items-center gap-4">
+                  <!-- Total score bar -->
+                  <div class="hidden md:flex items-center gap-2">
+                    <div class="w-32 bg-gray-200 rounded-full" style="height:8px">
+                      <div class="score-bar rounded-full"
+                           :class="totalScoreColor(entry.total)"
+                           :style="'width:' + (entry.total * 100).toFixed(1) + '%'">
+                      </div>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700" x-text="entry.total.toFixed(3)"></span>
+                  </div>
+                  <svg class="w-4 h-4 text-gray-400 transition-transform" :class="{'rotate-90': false}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </div>
+              </summary>
+              <!-- Score breakdown -->
+              <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <template x-for="[label, val] in scoreBreakdown(entry)" :key="label">
+                  <div class="bg-gray-50 rounded p-3">
+                    <p class="text-xs text-gray-500 mb-1" x-text="label"></p>
+                    <div class="w-full bg-gray-200 rounded-full mb-1" style="height:6px">
+                      <div class="score-bar rounded-full bg-blue-400"
+                           :style="'width:' + (val * 100).toFixed(1) + '%'"></div>
+                    </div>
+                    <p class="text-sm font-medium text-gray-800" x-text="val.toFixed(3)"></p>
+                  </div>
+                </template>
+              </div>
+            </details>
+          </template>
+        </div>
+      </div>
+
+      <!-- Filtered Out -->
+      <div class="bg-white rounded-lg shadow mb-6">
+        <div class="px-6 py-4 border-b">
+          <h3 class="text-lg font-semibold text-gray-900">Filtered Out</h3>
+        </div>
+        <div class="divide-y">
+          <template x-if="!result?.filtered_out?.length">
+            <div class="px-6 py-8 text-center text-gray-500">No memories were filtered out.</div>
+          </template>
+          <template x-for="entry in result?.filtered_out" :key="entry.memory_id">
+            <div class="px-6 py-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="badge-filtered text-xs px-2 py-0.5 rounded font-medium">FILTERED</span>
+                <span class="font-mono text-sm text-gray-800" x-text="entry.memory_id"></span>
+              </div>
+              <span class="text-sm text-red-600" x-text="entry.reason"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Returned IDs -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b">
+          <h3 class="text-lg font-semibold text-gray-900">Final Returned IDs</h3>
+        </div>
+        <div class="px-6 py-4">
+          <template x-if="!result?.returned?.length">
+            <p class="text-gray-500">No memories returned.</p>
+          </template>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="id in result?.returned" :key="id">
+              <span class="badge-included text-xs px-3 py-1 rounded-full font-mono" x-text="id"></span>
+            </template>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /result -->
+  </main>
+
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('debugApp', () => ({
+        form: {
+          query: '',
+          state: '',
+          minScore: 0,
+          limit: 10,
+        },
+        loading: false,
+        error: '',
+        result: null,
+
+        init() {
+          // Pre-fill query from URL param if present.
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('query')) this.form.query = params.get('query');
+          if (params.get('state')) this.form.state = params.get('state');
+        },
+
+        async runTrace() {
+          this.loading = true;
+          this.error = '';
+          this.result = null;
+
+          const params = new URLSearchParams({
+            query: this.form.query,
+            state: this.form.state,
+            min_score: this.form.minScore,
+            limit: this.form.limit,
+          });
+
+          try {
+            const resp = await fetch(`/api/debug/recall-trace?${params}`);
+            if (!resp.ok) {
+              const body = await resp.json().catch(() => ({}));
+              throw new Error(body.error || `HTTP ${resp.status}`);
+            }
+            this.result = await resp.json();
+
+            // Update browser URL so the query can be shared/bookmarked.
+            history.replaceState({}, '', `?${params}`);
+          } catch (err) {
+            this.error = `Error: ${err.message}`;
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        isReturned(memoryID) {
+          return this.result?.returned?.includes(memoryID) ?? false;
+        },
+
+        totalScoreColor(score) {
+          if (score >= 0.75) return 'bg-green-500';
+          if (score >= 0.5)  return 'bg-yellow-400';
+          return 'bg-red-400';
+        },
+
+        scoreBreakdown(entry) {
+          const s = entry.scores || {};
+          return [
+            ['Text Match',  s.text_match  ?? 0],
+            ['Recency',     s.recency     ?? 0],
+            ['Importance',  s.importance  ?? 0],
+            ['Confidence',  s.confidence  ?? 0],
+            ['Usage Boost', s.usage_boost ?? 0],
+          ];
+        },
+      }));
+    });
+  </script>
+</body>
+</html>

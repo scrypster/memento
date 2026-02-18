@@ -1,0 +1,25 @@
+/* ============================================================
+   APP.CSS — Main CSS entry point for Memento Web UI
+   Processed by Vite + PostCSS + Tailwind JIT
+
+   Import order:
+     1. @import files first (CSS spec requirement)
+     2. Tailwind directives (processed by PostCSS before CSS parsing)
+   ============================================================ */
+
+/* 1. Design tokens — CSS custom properties */
+@import './theme.css';
+
+/* 2. Element-level defaults */
+@import './base.css';
+
+/* 3. Reusable component classes */
+@import './components.css';
+
+/* 4. Component system — card-polished, input-field, memory-card, etc. */
+@import './component-system.css';
+
+/* 5. Tailwind CSS directives (JIT — only generates used utilities) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

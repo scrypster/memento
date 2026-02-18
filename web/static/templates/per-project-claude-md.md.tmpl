@@ -1,0 +1,14 @@
+## Memento — Project Workspace
+
+This project uses the **{{CONNECTION_NAME}}** Memento workspace.
+
+When using Memento MCP tools in this project, always pass `connection_id: "{{CONNECTION_ID}}"` to
+scope reads and writes to the correct workspace.
+
+Examples:
+- `store_memory(content: "...", connection_id: "{{CONNECTION_ID}}")`
+- `recall_memory(query: "...", connection_id: "{{CONNECTION_ID}}")`
+- `find_related(query: "...", connection_id: "{{CONNECTION_ID}}")`
+
+> Note: ID-based lookups (recall_memory with id=, update_memory, update_memory_state) route
+> automatically — you do not need to pass connection_id for those.

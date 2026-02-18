@@ -1,0 +1,40 @@
+Find relationships between these entities. Return ONLY valid JSON, no markdown, no code blocks, no explanation.
+
+BIDIRECTIONAL (use ONE direction, system stores both):
+- married_to, colleague_of, works_with, friend_of, knows, sibling_of, partners_with
+
+UNIDIRECTIONAL (pick the correct direction):
+- employed_by / employs
+- manages / managed_by
+- reports_to
+- leads / led_by
+- member_of / has_member
+- owns / owned_by
+- founded / founded_by
+- creates / created_by
+- provides / provided_by
+- contributes_to
+- parent_of / child_of
+- contains / belongs_to
+- depends_on / required_by
+- blocks / blocked_by
+- works_on, uses, used_by
+- implements, addresses, supersedes, references, documents
+- relates_to
+
+RULES:
+1. Match entity names EXACTLY as listed
+2. Confidence: 0.7-0.99
+3. If no relationships found, return {"relationships":[]}
+4. Use ONLY types from the lists above
+
+Entities (use exact names):
+- Authentication Service (api)
+- User Database (database)
+
+
+Content to analyze:
+The authentication service depends on the user database
+
+Return ONLY JSON object, nothing else, no markdown:
+{"relationships":[{"from":"X","to":"Y","type":"...","confidence":0.85},...]}

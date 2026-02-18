@@ -1,0 +1,366 @@
+{
+  "entity_types": {
+    "default": [
+      {
+        "type": "person",
+        "description": "Individual people",
+        "icon": "👤"
+      },
+      {
+        "type": "organization",
+        "description": "Companies, institutions",
+        "icon": "🏢"
+      },
+      {
+        "type": "tool",
+        "description": "Software tools, languages, frameworks",
+        "icon": "🔧"
+      },
+      {
+        "type": "framework",
+        "description": "Software frameworks",
+        "icon": "🛠️"
+      },
+      {
+        "type": "database",
+        "description": "Databases, data stores",
+        "icon": "🗄️"
+      },
+      {
+        "type": "project",
+        "description": "Projects, initiatives",
+        "icon": "📁"
+      },
+      {
+        "type": "concept",
+        "description": "Abstract concepts, ideas",
+        "icon": "💡"
+      },
+      {
+        "type": "task",
+        "description": "Tasks, todos",
+        "icon": "✓"
+      }
+    ],
+    "custom": []
+  },
+  "relationship_types": {
+    "default": [
+      {
+        "type": "married_to",
+        "description": "Spouse relationship",
+        "bidirectional": true,
+        "category": "family"
+      },
+      {
+        "type": "parent_of",
+        "description": "Parent to child",
+        "bidirectional": false,
+        "category": "family"
+      },
+      {
+        "type": "child_of",
+        "description": "Child to parent",
+        "bidirectional": false,
+        "category": "family"
+      },
+      {
+        "type": "uses",
+        "description": "Person/Org uses Tool",
+        "bidirectional": false,
+        "category": "technical"
+      },
+      {
+        "type": "works_on",
+        "description": "Person works on Project",
+        "bidirectional": false,
+        "category": "professional"
+      },
+      {
+        "type": "colleague_of",
+        "description": "Professional peers",
+        "bidirectional": true,
+        "category": "professional"
+      },
+      {
+        "type": "depends_on",
+        "description": "Tool depends on Tool",
+        "bidirectional": false,
+        "category": "technical"
+      }
+    ],
+    "custom": []
+  },
+  "category_templates": {
+    "software_development": {
+      "name": "Software Development",
+      "description": "General software development projects",
+      "categories": [
+        "Architecture",
+        "API Design",
+        "Database",
+        "Testing",
+        "Performance",
+        "Security",
+        "Frontend",
+        "Backend",
+        "DevOps",
+        "Documentation"
+      ]
+    },
+    "personal_assistant": {
+      "name": "Personal Assistant",
+      "description": "Life and productivity management",
+      "categories": [
+        "Tasks",
+        "Goals",
+        "Ideas",
+        "Notes",
+        "Learning",
+        "Reference",
+        "Decisions",
+        "Events"
+      ]
+    },
+    "devops": {
+      "name": "DevOps/Infrastructure",
+      "description": "Infrastructure and operations",
+      "categories": [
+        "CI/CD",
+        "Monitoring",
+        "Deployment",
+        "Infrastructure",
+        "Networking",
+        "Security",
+        "Automation"
+      ]
+    },
+    "research": {
+      "name": "Research & Learning",
+      "description": "Research and knowledge gathering",
+      "categories": [
+        "Papers",
+        "Experiments",
+        "Notes",
+        "Analysis",
+        "Questions",
+        "Insights",
+        "References"
+      ]
+    },
+    "project_management": {
+      "name": "Project Management",
+      "description": "Project planning and execution",
+      "categories": [
+        "Planning",
+        "Requirements",
+        "Design",
+        "Implementation",
+        "Testing",
+        "Deployment",
+        "Retrospectives"
+      ]
+    }
+  },
+  "system_defaults": {
+    "always_available_categories": [
+      "Relationships",
+      "Reference",
+      "Ideas",
+      "Notes"
+    ]
+  },
+  "legacy_categories": {
+    "Architecture": {
+      "description": "System design and structural decisions",
+      "subcategories": [
+        "System Design",
+        "Microservices",
+        "API Design",
+        "Data Architecture",
+        "Integration Patterns"
+      ]
+    },
+    "Security": {
+      "description": "Security policies and protective measures",
+      "subcategories": [
+        "Authentication",
+        "Authorization",
+        "Data Protection",
+        "Vulnerability",
+        "Compliance"
+      ]
+    },
+    "Database": {
+      "description": "Data management and persistence strategies",
+      "subcategories": [
+        "Schema Design",
+        "Query Optimization",
+        "Migrations",
+        "Indexing",
+        "Replication"
+      ]
+    },
+    "Testing": {
+      "description": "Test strategies and quality assurance",
+      "subcategories": [
+        "Unit Testing",
+        "Integration Testing",
+        "E2E Testing",
+        "TDD",
+        "Test Automation"
+      ]
+    },
+    "Performance": {
+      "description": "Optimization and efficiency improvements",
+      "subcategories": [
+        "Caching",
+        "Code Optimization",
+        "Monitoring",
+        "Profiling",
+        "Load Testing"
+      ]
+    },
+    "Business": {
+      "description": "Domain logic and business processes",
+      "subcategories": [
+        "Domain Logic",
+        "Business Rules",
+        "Workflow",
+        "Requirements",
+        "Compliance"
+      ]
+    },
+    "DevOps": {
+      "description": "Deployment, infrastructure, and operations",
+      "subcategories": [
+        "CI/CD",
+        "Infrastructure",
+        "Monitoring",
+        "Deployment",
+        "Containerization"
+      ]
+    },
+    "Frontend": {
+      "description": "User interface and client-side development",
+      "subcategories": [
+        "UI/UX",
+        "Components",
+        "State Management",
+        "Styling",
+        "Frameworks"
+      ]
+    },
+    "Backend": {
+      "description": "Server-side development and APIs",
+      "subcategories": [
+        "API Development",
+        "Business Logic",
+        "Data Processing",
+        "Background Jobs",
+        "Service Integration"
+      ]
+    }
+  },
+  "context_labels": {
+    "technical": [
+      "Technical",
+      "Business",
+      "Frontend",
+      "Backend",
+      "API",
+      "Web",
+      "Mobile",
+      "CLI"
+    ],
+    "domain": [
+      "Auth",
+      "Payment",
+      "Notification",
+      "Report",
+      "Analytics",
+      "Security",
+      "Performance",
+      "Database",
+      "Cache",
+      "Queue",
+      "Event",
+      "Email",
+      "SMS"
+    ],
+    "environment": [
+      "Production",
+      "Development",
+      "Testing",
+      "Staging",
+      "Local"
+    ],
+    "priority": [
+      "Critical",
+      "High",
+      "Medium",
+      "Low"
+    ],
+    "status": [
+      "Active",
+      "Deprecated",
+      "Experimental",
+      "Stable",
+      "Beta",
+      "Alpha"
+    ]
+  },
+  "project_hierarchy": [
+    {
+      "type": "project",
+      "description": "High-level project or initiative",
+      "contains": [
+        "epic",
+        "phase",
+        "milestone"
+      ]
+    },
+    {
+      "type": "epic",
+      "description": "Large feature spanning multiple phases",
+      "contains": [
+        "phase",
+        "task"
+      ]
+    },
+    {
+      "type": "phase",
+      "description": "Implementation phase within project",
+      "contains": [
+        "task",
+        "step"
+      ]
+    },
+    {
+      "type": "milestone",
+      "description": "Key milestone or deadline",
+      "contains": [
+        "phase",
+        "task"
+      ]
+    },
+    {
+      "type": "task",
+      "description": "Specific implementation task",
+      "contains": [
+        "step"
+      ]
+    },
+    {
+      "type": "step",
+      "description": "Individual implementation step",
+      "contains": []
+    }
+  ],
+  "settings": {
+    "max_context_labels": 5,
+    "auto_categorize": true,
+    "enable_learning": true,
+    "confidence_threshold": 0.4
+  }
+}

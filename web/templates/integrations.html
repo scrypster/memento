@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integrations - Memento</title>
+  <link rel="stylesheet" href="/static/css/tailwind.min.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <!-- Theme: prevent FOUC. Default is dark mode. -->
+  <script>
+    (function() {
+      var theme = localStorage.getItem('theme');
+      if (theme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      }
+    })();
+  </script>
+  <!-- Alpine.js - defer ensures it waits for DOM and executes after our app.js -->
+  <script src="/static/vendor/alpine-3.14.9.min.js" defer></script>
+</head>
+<body x-data="integrationsApp" x-init="init()" class="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors">
+  <!-- Top Navigation Bar (matches index.html) -->
+  <nav class="app-nav sticky top-0 z-40 backdrop-blur-lg border-b transition-all shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <!-- Logo -->
+        <div class="flex items-center">
+          <a href="/" class="text-xl font-bold text-gray-900 dark:text-white">🧠 Memento</a>
+        </div>
+
+        <!-- Page Navigation (Center) -->
+        <div class="flex items-center space-x-4">
+          <a href="/#dashboard"
+             class="nav-btn text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 transition">📊 Dashboard</a>
+          <a href="/#feed"
+             class="nav-btn text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 transition">📡 Live Feed</a>
+          <a href="/#search"
+             class="nav-btn text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 transition">🔍 Search</a>
+          <a href="/#graph"
+             class="nav-btn text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 transition">🕸 Graph</a>
+        </div>
+
+        <!-- Right Side: Theme Toggle + Menu (matches index.html) -->
+        <div class="flex items-center space-x-3">
+          <!-- Theme Toggle Button -->
+          <button @click="toggleTheme()"
+                  class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  title="Toggle theme">
+            <svg x-show="isDarkMode" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg x-show="!isDarkMode" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+
+          <!-- Menu Dropdown -->
+          <div class="relative" x-data="{ menuOpen: false }">
+            <button @click="menuOpen = !menuOpen"
+                    class="nav-btn font-bold text-gray-900 dark:text-white border-b-2 border-gray-900 dark:border-white hover:text-gray-900 dark:hover:text-white px-3 py-2 transition"
+                    aria-label="Menu">
+              ⋮ Menu ▼
+            </button>
+            <div x-show="menuOpen"
+                 @click.away="menuOpen = false"
+                 x-transition
+                 class="absolute right-0 mt-2 w-48 card-polished py-2 shadow-lg z-50"
+                 style="display: none;">
+              <a href="/#dashboard"
+                 class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 block">
+                📊 Dashboard
+              </a>
+              <a href="/#entities"
+                 class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 block">
+                👤 Entities
+              </a>
+              <a href="/#relationships"
+                 class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 block">
+                🔗 Relationships
+              </a>
+              <a href="/#queue"
+                 class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 block">
+                ⏳ Queue
+              </a>
+              <a href="/import"
+                 class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 block">
+                📥 Import
+              </a>
+              <a href="/debug"
+                 class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 block">
+                🔬 Debug
+              </a>
+              <span class="w-full text-left px-4 py-2 text-gray-900 dark:text-white font-bold block">
+                ⚡ Integrations
+              </span>
+              <a href="/#settings"
+                 class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 block">
+                ⚙️ Settings
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">⚡ Integrations</h1>
+      <p class="text-gray-600 dark:text-gray-400">Configure Memento to work with your favorite tools and IDEs</p>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow border-b border-gray-200 dark:border-gray-700 mb-6">
+      <div class="flex flex-wrap">
+        <button @click="selectTab('claude-desktop')"
+                :class="activeTab === 'claude-desktop' ? 'border-b-2 border-blue-600 font-bold text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+                class="px-6 py-4 text-sm font-medium transition border-b-2 border-transparent">
+          🖥️ Claude Desktop
+        </button>
+        <button @click="selectTab('claude-code')"
+                :class="activeTab === 'claude-code' ? 'border-b-2 border-blue-600 font-bold text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+                class="px-6 py-4 text-sm font-medium transition border-b-2 border-transparent">
+          💻 Claude Code
+        </button>
+        <button @click="selectTab('cursor')"
+                :class="activeTab === 'cursor' ? 'border-b-2 border-blue-600 font-bold text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+                class="px-6 py-4 text-sm font-medium transition border-b-2 border-transparent">
+          ✏️ Cursor
+        </button>
+        <button @click="selectTab('windsurf')"
+                :class="activeTab === 'windsurf' ? 'border-b-2 border-blue-600 font-bold text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+                class="px-6 py-4 text-sm font-medium transition border-b-2 border-transparent">
+          🏄 Windsurf
+        </button>
+        <button @click="selectTab('openclaw')"
+                :class="activeTab === 'openclaw' ? 'border-b-2 border-blue-600 font-bold text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+                class="px-4 py-3 text-sm font-medium transition-colors duration-150 whitespace-nowrap">
+          🦞 OpenClaw
+        </button>
+        <button @click="selectTab('generic')"
+                :class="activeTab === 'generic' ? 'border-b-2 border-blue-600 font-bold text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+                class="px-6 py-4 text-sm font-medium transition border-b-2 border-transparent">
+          ⚙️ Generic MCP
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="space-y-6">
+      <!-- Claude Desktop Tab -->
+      <div x-show="activeTab === 'claude-desktop'" x-transition class="space-y-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Claude Desktop Integration</h2>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">Connect Memento to Claude Desktop for seamless MCP communication.</p>
+
+          <!-- Quick Setup Section -->
+          <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Setup</h3>
+            <ol class="space-y-3 list-decimal list-inside">
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Download your config</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Download the pre-configured settings file for Claude Desktop.</p>
+              </li>
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Locate config directory</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Open the Claude Desktop config directory on your system.</p>
+              </li>
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Copy config file</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Place the downloaded config file in the appropriate location.</p>
+              </li>
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Restart Claude Desktop</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Restart the application to load the new configuration.</p>
+              </li>
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Test connection</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Verify the connection is working properly.</p>
+              </li>
+            </ol>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap gap-3 mb-8">
+            <button @click="downloadConfig('claude-desktop')"
+                    class="btn btn-primary btn-sm">
+              📥 Download Config
+            </button>
+            <button @click="testConnection('claude-desktop')"
+                    class="btn btn-sm" style="background:#059669;color:white;border:none">
+              ✓ Verify Server
+            </button>
+          </div>
+
+          <!-- Config Paths -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">macOS Path</p>
+              <div class="flex items-center gap-2">
+                <code class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex-1 overflow-x-auto">~/Library/Application Support/Claude</code>
+                <button @click="copyToClipboard('~/Library/Application Support/Claude')"
+                        class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium">Copy</button>
+              </div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Windows Path</p>
+              <div class="flex items-center gap-2">
+                <code class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex-1 overflow-x-auto">%APPDATA%\Claude</code>
+                <button @click="copyToClipboard('%APPDATA%\\Claude')"
+                        class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium">Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Example Usage -->
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">Example Configuration</h4>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Place at <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS)</p>
+            <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs"><code>{
+  "mcpServers": {
+    "memento": {
+      "command": "/path/to/memento-mcp",
+      "args": [],
+      "env": {
+        "MEMENTO_DATA_PATH": "/path/to/data",
+        "MEMENTO_CONNECTIONS_CONFIG": "/path/to/connections.json"
+      }
+    }
+  }
+}</code></pre>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Note: the key is <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">mcpServers</code> (camelCase). Download your pre-filled config above to get real paths.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Claude Code Tab -->
+      <div x-show="activeTab === 'claude-code'" x-transition class="space-y-6">
+
+        <!-- Integration levels overview -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Claude Code Integration</h2>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">There are three levels of integration — choose what fits your workflow.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            <!-- Level 1 -->
+            <div class="rounded-lg border border-gray-200 dark:border-gray-600 p-5">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-600 text-xs font-bold text-gray-700 dark:text-gray-300">1</span>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Explicit only</h3>
+              </div>
+              <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">MCP tools available but dormant. Claude uses them only when you ask directly.</p>
+              <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1 mb-4">
+                <li class="flex gap-1.5"><span class="text-green-500 flex-shrink-0">✓</span> Full manual control</li>
+                <li class="flex gap-1.5"><span class="text-green-500 flex-shrink-0">✓</span> Nothing stored without consent</li>
+                <li class="flex gap-1.5"><span class="text-gray-400 flex-shrink-0">–</span> Must say "remember this" every time</li>
+              </ul>
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">What to install</p>
+              <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">MCP registration only (steps 1–4 below)</p>
+            </div>
+
+            <!-- Level 2 -->
+            <div class="rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10 p-5">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 dark:bg-blue-700 text-xs font-bold text-blue-800 dark:text-blue-200">2</span>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Skill-assisted</h3>
+              </div>
+              <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">Add a skill file for focused memory sessions via <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded">/memento</code>.</p>
+              <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1 mb-4">
+                <li class="flex gap-1.5"><span class="text-green-500 flex-shrink-0">✓</span> Invoke with a slash command</li>
+                <li class="flex gap-1.5"><span class="text-green-500 flex-shrink-0">✓</span> Clear intent — explicit recall/store</li>
+                <li class="flex gap-1.5"><span class="text-gray-400 flex-shrink-0">–</span> Still manual invocation</li>
+              </ul>
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">What to install</p>
+              <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">MCP registration + skill file</p>
+            </div>
+
+            <!-- Level 3 -->
+            <div class="rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20 p-5">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-500 text-xs font-bold text-white">3</span>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Always-on <span class="text-xs text-green-600 dark:text-green-400 font-normal ml-1">recommended</span></h3>
+              </div>
+              <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">Add a CLAUDE.md snippet — Claude stores decisions and recalls context automatically.</p>
+              <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1 mb-4">
+                <li class="flex gap-1.5"><span class="text-green-500 flex-shrink-0">✓</span> No "remember this" needed</li>
+                <li class="flex gap-1.5"><span class="text-green-500 flex-shrink-0">✓</span> Context recalled at session start</li>
+                <li class="flex gap-1.5"><span class="text-green-500 flex-shrink-0">✓</span> Works across all projects globally</li>
+              </ul>
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">What to install</p>
+              <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">MCP registration + skill file + CLAUDE.md snippet</p>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Step 1 — Register the MCP server</h2>
+          <p class="text-gray-600 dark:text-gray-400 mb-5">Required for all integration levels.</p>
+
+          <!-- Critical warning callout -->
+          <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-4 mb-6 flex gap-3">
+            <span class="text-amber-500 text-lg mt-0.5 flex-shrink-0">⚠️</span>
+            <div>
+              <p class="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">Don't drop a config file — use the CLI</p>
+              <p class="text-sm text-amber-700 dark:text-amber-400">Claude Code v2.x <strong>silently ignores</strong> standalone MCP JSON files (e.g. <code class="bg-amber-100 dark:bg-amber-800 px-1 rounded text-xs">~/.claude/mcp.json</code>). The only supported registration method is <code class="bg-amber-100 dark:bg-amber-800 px-1 rounded text-xs">claude mcp add</code>, which writes to <code class="bg-amber-100 dark:bg-amber-800 px-1 rounded text-xs">~/.claude.json</code>.</p>
+            </div>
+          </div>
+
+          <!-- Quick Setup Section -->
+          <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Setup (one-time)</h3>
+            <ol class="space-y-5 list-decimal list-inside">
+
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Register via CLI</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1 mb-2">Run this once in your terminal. It writes the server entry to <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">~/.claude.json</code>.</p>
+                <div class="ml-6 bg-gray-900 rounded-lg p-3 flex items-start gap-2">
+                  <code class="text-xs text-gray-100 flex-1 overflow-x-auto whitespace-pre" x-text="cliCommand"></code>
+                  <button @click="copyToClipboard(cliCommand)"
+                          class="flex-shrink-0 text-blue-400 hover:text-blue-300 text-xs font-medium mt-0.5">Copy</button>
+                </div>
+              </li>
+
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Verify registration</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1 mb-2">Confirm memento appears in the registered servers list.</p>
+                <div class="ml-6 bg-gray-900 rounded-lg p-3 flex items-center gap-2">
+                  <code class="text-xs text-gray-100 flex-1">claude mcp list</code>
+                  <button @click="copyToClipboard('claude mcp list')"
+                          class="text-blue-400 hover:text-blue-300 text-xs font-medium">Copy</button>
+                </div>
+              </li>
+
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Restart Claude Code</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Close and reopen your terminal or IDE window. Claude Code does not hot-reload MCP registrations.</p>
+              </li>
+
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Confirm in-session</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1 mb-2">Type <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">/mcp</code> inside a Claude Code session — Memento should appear as <span class="text-green-600 dark:text-green-400 font-medium">connected</span>.</p>
+              </li>
+
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Install skill file <span class="text-gray-500 font-normal">(optional)</span></span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Download the skill file and place it at <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">~/.claude/skills/memento.md</code> to enable <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">/memento</code> slash commands.</p>
+              </li>
+
+            </ol>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap gap-3 mb-8">
+            <button @click="downloadConfig('claude-code', 'skill')"
+                    class="btn btn-primary btn-sm">
+              📜 Download Skill File
+            </button>
+            <button @click="testConnection('claude-code')"
+                    class="btn btn-sm" style="background:#059669;color:white;border:none">
+              ✓ Verify Server
+            </button>
+          </div>
+
+          <!-- Reference paths -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Registration config (written by CLI)</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Do not edit manually — use <code>claude mcp add/remove</code></p>
+              <div class="flex items-center gap-2">
+                <code class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex-1 overflow-x-auto">~/.claude.json</code>
+                <button @click="copyToClipboard('~/.claude.json')"
+                        class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium">Copy</button>
+              </div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Skill file location</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Place downloaded skill here then restart</p>
+              <div class="flex items-center gap-2">
+                <code class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex-1 overflow-x-auto">~/.claude/skills/memento.md</code>
+                <button @click="copyToClipboard('~/.claude/skills/memento.md')"
+                        class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium">Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Troubleshooting callout -->
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-5 border border-gray-200 dark:border-gray-600">
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Troubleshooting</h4>
+            <dl class="space-y-3 text-sm">
+              <div>
+                <dt class="font-medium text-gray-700 dark:text-gray-300">MCP tools not showing in Claude Code</dt>
+                <dd class="text-gray-600 dark:text-gray-400 mt-0.5">Run <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">claude mcp list</code> to confirm registration. If missing, re-run the <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">claude mcp add</code> command above, then restart.</dd>
+              </div>
+              <div>
+                <dt class="font-medium text-gray-700 dark:text-gray-300">Server appears but tools fail</dt>
+                <dd class="text-gray-600 dark:text-gray-400 mt-0.5">Check that <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">memento-mcp</code> binary is executable and <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">MEMENTO_DATA_PATH</code> directory exists.</dd>
+              </div>
+              <div>
+                <dt class="font-medium text-gray-700 dark:text-gray-300">Remove registration</dt>
+                <dd class="text-gray-600 dark:text-gray-400 mt-0.5"><code class="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">claude mcp remove memento --scope user</code></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Make it proactive card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div class="flex items-start gap-3 mb-4">
+            <span class="text-2xl">🧠</span>
+            <div>
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">Make it proactive</h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Recommended — adds always-on memory behavior</p>
+            </div>
+          </div>
+
+          <p class="text-gray-600 dark:text-gray-400 mb-5">
+            The MCP connection makes tools <em>available</em>, but Claude won't use them automatically unless you tell it to.
+            Add this snippet to <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">~/.claude/CLAUDE.md</code> to make Claude
+            proactively store decisions and recall context throughout every session — no "remember this" required.
+          </p>
+
+          <!-- How it works comparison -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+              <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Without snippet</p>
+              <ul class="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+                <li>• Tools available but dormant</li>
+                <li>• Must say "remember this" every time</li>
+                <li>• No automatic context recall</li>
+              </ul>
+            </div>
+            <div class="rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20 p-4">
+              <p class="text-xs font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide mb-2">With snippet ✓</p>
+              <ul class="space-y-1.5 text-sm text-green-800 dark:text-green-300">
+                <li>• Decisions stored automatically</li>
+                <li>• Preferences recalled at session start</li>
+                <li>• Works across all projects globally</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Snippet preview -->
+          <div class="mb-5">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Snippet content</h4>
+              <button @click="copyToClipboard(claudeMdSnippet)"
+                      class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium">
+                Copy to clipboard
+              </button>
+            </div>
+            <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs leading-relaxed" x-text="claudeMdSnippet"></pre>
+          </div>
+
+          <!-- Where to put it -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Global (all projects)</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Applies to every Claude Code session</p>
+              <div class="flex items-center gap-2">
+                <code class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex-1 overflow-x-auto">~/.claude/CLAUDE.md</code>
+                <button @click="copyToClipboard('~/.claude/CLAUDE.md')"
+                        class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium">Copy</button>
+              </div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Project-scoped</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Applies only within a specific repo</p>
+              <div class="flex items-center gap-2">
+                <code class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex-1 overflow-x-auto">./CLAUDE.md</code>
+                <button @click="copyToClipboard('./CLAUDE.md')"
+                        class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-white text-xs font-medium">Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="flex flex-wrap gap-3">
+            <button @click="downloadConfig('claude-code', 'claude-md')"
+                    class="btn btn-primary btn-sm">
+              📥 Download Snippet
+            </button>
+            <button @click="testConnection('claude-code')"
+                    class="btn btn-sm" style="background:#059669;color:white;border:none">
+              ✓ Verify Server
+            </button>
+          </div>
+        </div>
+
+        <!-- Per-project workspace scoping card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div class="flex items-start gap-3 mb-4">
+            <span class="text-2xl">🗂️</span>
+            <div>
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">Per-project workspace</h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Scope a project's memories to a specific connection</p>
+            </div>
+          </div>
+
+          <p class="text-gray-600 dark:text-gray-400 mb-5">
+            Place a <code class="bg-gray-200 dark:bg-gray-600 px-1 rounded text-xs">CLAUDE.md</code> snippet in your project root to tell Claude
+            which workspace to use for that project. This overrides the global default for all Memento
+            tool calls made within the project.
+          </p>
+
+          <!-- Connection selector -->
+          <div class="mb-5">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select workspace</label>
+            <div class="flex items-center gap-3">
+              <select x-model="perProjectConnection"
+                      class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all">
+                <option value="">— pick a connection —</option>
+                <template x-for="conn in availableConnections" :key="conn.name">
+                  <option :value="conn.name" x-text="conn.display_name || conn.name"></option>
+                </template>
+              </select>
+            </div>
+          </div>
+
+          <!-- Snippet preview -->
+          <div x-show="perProjectConnection" class="mb-5">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Snippet preview</h4>
+              <button @click="copyToClipboard(perProjectSnippet())"
+                      class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium">
+                Copy to clipboard
+              </button>
+            </div>
+            <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs leading-relaxed" x-text="perProjectSnippet()"></pre>
+          </div>
+
+          <!-- Where to put it -->
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 mb-5">
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Place in your project root</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Claude Code reads this file when inside the project directory</p>
+            <div class="flex items-center gap-2">
+              <code class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex-1 overflow-x-auto">./CLAUDE.md</code>
+              <button @click="copyToClipboard('./CLAUDE.md')"
+                      class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium">Copy</button>
+            </div>
+          </div>
+
+          <!-- Global default callout -->
+          <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-4 mb-5 flex gap-3">
+            <span class="text-amber-500 text-base mt-0.5 flex-shrink-0">💡</span>
+            <div>
+              <p class="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">Setting a global default</p>
+              <p class="text-sm text-amber-700 dark:text-amber-400">
+                To pin a single connection for <em>all</em> sessions, add
+                <code class="bg-amber-100 dark:bg-amber-800 px-1 rounded text-xs">-e MEMENTO_DEFAULT_CONNECTION=<span x-text="perProjectConnection || 'your-connection'"></span></code>
+                to your <code class="bg-amber-100 dark:bg-amber-800 px-1 rounded text-xs">claude mcp add</code> command.
+              </p>
+            </div>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="flex flex-wrap gap-3" x-show="perProjectConnection">
+            <button @click="downloadPerProjectSnippet()"
+                    class="btn btn-primary btn-sm">
+              📥 Download Snippet
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cursor Tab -->
+      <div x-show="activeTab === 'cursor'" x-transition class="space-y-6">
+
+        <!-- Header card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Cursor Integration</h2>
+          <p class="text-gray-600 dark:text-gray-400">Add Memento as an MCP server in Cursor AI editor for persistent memory across all your projects.</p>
+        </div>
+
+        <!-- Step 1: MCP Config -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Step 1 — Add MCP Server Config</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Download the config file and place it at the correct path for your OS.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+              <div class="font-medium text-gray-700 dark:text-gray-300 mb-1">macOS / Linux</div>
+              <code class="text-xs text-blue-600 dark:text-blue-400">~/.cursor/mcp.json</code>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+              <div class="font-medium text-gray-700 dark:text-gray-300 mb-1">Windows</div>
+              <code class="text-xs text-blue-600 dark:text-blue-400">%USERPROFILE%\.cursor\mcp.json</code>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-3">
+            <button @click="downloadConfig('cursor')"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+              📥 Download MCP Config
+            </button>
+            <button @click="testConnection('cursor')"
+                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors">
+              ✓ Verify Server
+            </button>
+          </div>
+
+          <div x-show="connectionTested" class="rounded-lg p-3 text-sm"
+               :class="connectionStatus === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'">
+            <span x-show="connectionStatus === 'success'">✓ Memento server is reachable — MCP tools are available.</span>
+            <span x-show="connectionStatus !== 'success'">✗ Could not reach the Memento server. Make sure memento-web is running.</span>
+          </div>
+
+          <p class="text-xs text-gray-500 dark:text-gray-400">After placing the file, fully restart Cursor (Quit and reopen — not just reload window).</p>
+        </div>
+
+        <!-- Step 2: Cursor Rules (optional) -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Step 2 — Add Cursor Rules <span class="text-sm font-normal text-gray-500">(optional but recommended)</span></h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">A <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">.cursor/rules/memento.mdc</code> file tells Cursor's AI when and how to use Memento automatically — saving context, recalling past decisions, and storing preferences without you having to ask.</p>
+
+          <button @click="downloadConfig('cursor', 'rule')"
+                  class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors">
+            📜 Download Cursor Rules
+          </button>
+
+          <p class="text-xs text-gray-500 dark:text-gray-400">Place the downloaded file in your project root at <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">.cursor/rules/memento.mdc</code>. Commit it to version control so the whole team benefits.</p>
+        </div>
+
+        <!-- Step 3: Per-project workspace -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Step 3 — Scope to a Workspace <span class="text-sm font-normal text-gray-500">(optional)</span></h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">If you have multiple Memento connections, add a <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">.cursor/rules/memento-workspace.mdc</code> file that pins a specific workspace for this project.</p>
+
+          <div x-show="availableConnections.length > 1" class="space-y-3">
+            <select x-model="perProjectConnection"
+                    class="w-full md:w-64 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">Select a workspace...</option>
+              <template x-for="conn in availableConnections" :key="conn.name">
+                <option :value="conn.name" x-text="conn.display_name || conn.name"></option>
+              </template>
+            </select>
+
+            <div x-show="perProjectConnection" class="space-y-2">
+              <pre class="text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap" x-text="perProjectSnippet()"></pre>
+              <button @click="downloadPerProjectSnippet()"
+                      class="inline-flex items-center gap-2 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+                📥 Download Workspace Snippet
+              </button>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Place this file at <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">.cursor/rules/memento-workspace.mdc</code> in your project root.</p>
+            </div>
+          </div>
+
+          <div x-show="availableConnections.length <= 1" class="text-sm text-gray-500 dark:text-gray-400 italic">
+            You only have one workspace — no scoping needed.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Windsurf Tab -->
+      <div x-show="activeTab === 'windsurf'" x-transition class="space-y-6">
+
+        <!-- Header card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Windsurf Integration</h2>
+          <p class="text-gray-600 dark:text-gray-400">Connect Memento to Windsurf (Codeium) as an MCP server for persistent AI memory.</p>
+        </div>
+
+        <!-- Step 1: MCP Config -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Step 1 — Add MCP Server Config</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Download the config file and place it at the correct path for your OS.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+              <div class="font-medium text-gray-700 dark:text-gray-300 mb-1">macOS / Linux</div>
+              <code class="text-xs text-blue-600 dark:text-blue-400">~/.codeium/windsurf/mcp_config.json</code>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+              <div class="font-medium text-gray-700 dark:text-gray-300 mb-1">Windows</div>
+              <code class="text-xs text-blue-600 dark:text-blue-400">%APPDATA%\Windsurf\User\mcp_config.json</code>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-3">
+            <button @click="downloadConfig('windsurf')"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+              📥 Download MCP Config
+            </button>
+            <button @click="testConnection('windsurf')"
+                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors">
+              ✓ Verify Server
+            </button>
+          </div>
+
+          <div x-show="connectionTested" class="rounded-lg p-3 text-sm"
+               :class="connectionStatus === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'">
+            <span x-show="connectionStatus === 'success'">✓ Memento server is reachable — MCP tools are available.</span>
+            <span x-show="connectionStatus !== 'success'">✗ Could not reach the Memento server. Make sure memento-web is running.</span>
+          </div>
+
+          <p class="text-xs text-gray-500 dark:text-gray-400">After placing the file, fully restart Windsurf.</p>
+        </div>
+
+        <!-- Per-project workspace -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Step 2 — Scope to a Workspace <span class="text-sm font-normal text-gray-500">(optional)</span></h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Add a Windsurf rule file to scope Memento to a specific workspace for this project. Place the snippet in <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">.windsurf/rules/memento.md</code> in your project root.</p>
+
+          <div x-show="availableConnections.length > 1" class="space-y-3">
+            <select x-model="perProjectConnection"
+                    class="w-full md:w-64 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">Select a workspace...</option>
+              <template x-for="conn in availableConnections" :key="conn.name">
+                <option :value="conn.name" x-text="conn.display_name || conn.name"></option>
+              </template>
+            </select>
+
+            <div x-show="perProjectConnection" class="space-y-2">
+              <pre class="text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap" x-text="perProjectSnippet()"></pre>
+              <button @click="downloadPerProjectSnippet()"
+                      class="inline-flex items-center gap-2 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+                📥 Download Workspace Snippet
+              </button>
+            </div>
+          </div>
+
+          <div x-show="availableConnections.length <= 1" class="text-sm text-gray-500 dark:text-gray-400 italic">
+            You only have one workspace — no scoping needed.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- OpenClaw Tab -->
+      <div x-show="activeTab === 'openclaw'" x-transition class="space-y-6">
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <h3 class="font-semibold text-blue-900 dark:text-blue-100 mb-1">🦞 OpenClaw — mcp-adapter</h3>
+          <p class="text-sm text-blue-800 dark:text-blue-200">
+            OpenClaw uses a plugin-based MCP adapter. You need to install the <code>mcp-adapter</code> plugin first,
+            then merge the downloaded config into your <code>~/.openclaw/openclaw.json</code>.
+          </p>
+        </div>
+
+        <!-- Step 1: Install plugin -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+          <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Step 1: Install mcp-adapter plugin</h4>
+          <pre class="bg-gray-900 text-green-400 rounded p-3 text-sm font-mono">openclaw plugins install mcp-adapter</pre>
+        </div>
+
+        <!-- Step 2: Download config -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+          <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Step 2: Download Memento config</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            Download the JSON snippet and merge it into <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">~/.openclaw/openclaw.json</code>.
+          </p>
+          <button @click="downloadConfig('openclaw')"
+                  class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+            Download openclaw_mcp_config.json
+          </button>
+        </div>
+
+        <!-- Step 3: Add to config -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+          <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Step 3: Merge into your OpenClaw config</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">If <code>~/.openclaw/openclaw.json</code> already has a <code>plugins</code> block, add the <code>memento</code> entry to the existing <code>servers</code> array.</p>
+          <pre class="bg-gray-900 text-green-400 rounded p-3 text-sm font-mono overflow-x-auto">{
+  "plugins": {
+    "entries": {
+      "mcp-adapter": {
+        "servers": [
+          {
+            "name": "memento",
+            "transport": "stdio",
+            "command": "<span x-text="systemInfo?.mcp_binary_path || '/path/to/memento-mcp'"></span>"
+          }
+        ]
+      }
+    }
+  }
+}</pre>
+        </div>
+
+        <!-- Step 4: Restart -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+          <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Step 4: Restart OpenClaw gateway</h4>
+          <pre class="bg-gray-900 text-green-400 rounded p-3 text-sm font-mono">openclaw gateway restart</pre>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Memento tools will appear as <code>memento_store_memory</code>, <code>memento_recall_memory</code>, etc.</p>
+        </div>
+      </div>
+
+      <!-- Generic MCP Tab -->
+      <div x-show="activeTab === 'generic'" x-transition class="space-y-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Generic MCP Integration</h2>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">Use Memento with any MCP-compatible tool or application.</p>
+
+          <!-- Quick Setup Section -->
+          <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Setup</h3>
+            <ol class="space-y-3 list-decimal list-inside">
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Install Memento MCP server</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Install the Memento MCP server binary on your system.</p>
+              </li>
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Download configuration</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Create a generic MCP configuration file.</p>
+              </li>
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Update your MCP client config</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Add the Memento MCP server to your client's configuration.</p>
+              </li>
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Set environment variables</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Configure necessary environment variables for the data path.</p>
+              </li>
+              <li class="text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Test MCP connection</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400 ml-6 mt-1">Verify the MCP server is accessible and responding.</p>
+              </li>
+            </ol>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap gap-3 mb-8">
+            <button @click="downloadConfig('generic')"
+                    class="btn btn-primary btn-sm">
+              📥 Download Config
+            </button>
+            <button @click="testConnection('generic')"
+                    class="btn btn-sm" style="background:#059669;color:white;border:none">
+              ✓ Verify Server
+            </button>
+          </div>
+
+          <!-- Server Details -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Server URL</p>
+              <div class="flex items-center gap-2">
+                <code class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex-1 overflow-x-auto">http://localhost:6363</code>
+                <button @click="copyToClipboard('http://localhost:6363')"
+                        class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium">Copy</button>
+              </div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">MCP Binary Path</p>
+              <div class="flex items-center gap-2">
+                <code class="text-xs bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex-1 overflow-x-auto">/usr/local/bin/memento-mcp</code>
+                <button @click="copyToClipboard('/usr/local/bin/memento-mcp')"
+                        class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium">Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Example Usage -->
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Generic MCP Configuration</h4>
+            <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs"><code>{
+  "mcpServers": {
+    "memento": {
+      "command": "/usr/local/bin/memento-mcp",
+      "args": ["--mcp"],
+      "env": {
+        "MEMENTO_DATA_PATH": "~/.memento"
+      }
+    }
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connection Status Banner (shown after Verify Server) -->
+    <div x-show="connectionTested" class="mt-8 p-4 rounded-lg"
+         :class="connectionStatus === 'success' ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700' : 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700'">
+      <p :class="connectionStatus === 'success' ? 'text-green-700 dark:text-green-400 font-medium' : 'text-red-700 dark:text-red-400 font-medium'"
+         x-text="connectionMessage"></p>
+    </div>
+  </main>
+
+  <!-- Toast Notifications (Bottom Right) -->
+  <div class="fixed bottom-4 right-4 space-y-2 z-50">
+    <template x-for="notification in notifications" :key="notification.id">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-sm flex items-start space-x-3"
+           :class="{
+             'border-l-4 border-green-500': notification.type === 'success',
+             'border-l-4 border-red-500': notification.type === 'error',
+             'border-l-4 border-yellow-500': notification.type === 'warning',
+             'border-l-4 border-blue-500': notification.type === 'info'
+           }">
+        <div class="flex-1">
+          <p class="text-sm text-gray-900 dark:text-gray-100" x-text="notification.message"></p>
+        </div>
+        <button @click="removeNotification(notification.id)"
+                class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+          ✕
+        </button>
+      </div>
+    </template>
+  </div>
+
+  <!-- Alpine.js Application Logic -->
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('integrationsApp', () => ({
+        // State
+        activeTab: 'claude-desktop',
+        isDarkMode: false,
+        notifications: [],
+        notificationId: 0,
+        connectionTested: false,
+        connectionStatus: 'success',
+        connectionMessage: '',
+        systemInfo: null,
+        cliCommand: 'Loading...',
+        claudeMdSnippet: 'Loading...',
+        availableConnections: [],
+        perProjectConnection: '',
+
+        // Integration metadata
+        integrations: {
+          'claude-desktop': {
+            name: 'Claude Desktop',
+            icon: '🖥️',
+            docs: '/docs/integrations/claude-desktop'
+          },
+          'claude-code': {
+            name: 'Claude Code',
+            icon: '💻',
+            docs: '/docs/integrations/claude-code'
+          },
+          'cursor': {
+            name: 'Cursor',
+            icon: '✏️',
+            docs: '/docs/integrations/cursor'
+          },
+          'windsurf': {
+            name: 'Windsurf',
+            icon: '🏄',
+            docs: '/docs/integrations/windsurf'
+          },
+          'openclaw': {
+            name: 'OpenClaw',
+            icon: '🦞',
+            docs: '/docs/integrations/openclaw'
+          },
+          'generic': {
+            name: 'Generic MCP',
+            icon: '⚙️',
+            docs: '/docs/integrations/generic'
+          }
+        },
+
+        init() {
+          this.isDarkMode = document.documentElement.classList.contains('dark');
+          this.selectTab('claude-desktop');
+          this.loadSystemInfo();
+          this.loadConnections();
+        },
+
+        async loadSystemInfo() {
+          try {
+            const [sysResp, snippetResp] = await Promise.all([
+              fetch('/api/integrations/systems'),
+              fetch('/api/integrations/claude-code/config?file=claude-md')
+            ]);
+            const data = await sysResp.json();
+            this.systemInfo = data;
+            this.cliCommand = `claude mcp add memento ${data.mcp_binary_path} --scope user \\\n  -e MEMENTO_DATA_PATH=${data.data_dir} \\\n  -e MEMENTO_CONNECTIONS_CONFIG=${data.connections_config}`;
+            if (snippetResp.ok) {
+              this.claudeMdSnippet = await snippetResp.text();
+            }
+          } catch (e) {
+            this.cliCommand = 'claude mcp add memento /path/to/memento-mcp --scope user \\\n  -e MEMENTO_DATA_PATH=/path/to/data \\\n  -e MEMENTO_CONNECTIONS_CONFIG=/path/to/connections.json';
+            this.claudeMdSnippet = '# Could not load snippet — verify server is running';
+          }
+        },
+
+        async loadConnections() {
+          try {
+            const resp = await fetch('/api/connections');
+            if (resp.ok) {
+              const data = await resp.json();
+              this.availableConnections = (data.connections || []).filter(c => c.enabled !== false);
+            }
+          } catch (e) {
+            // non-fatal
+          }
+        },
+
+        perProjectSnippet() {
+          const conn = this.availableConnections.find(c => c.name === this.perProjectConnection);
+          const displayName = conn ? (conn.display_name || conn.name) : this.perProjectConnection;
+          return `## Memento — Project Workspace\n\nThis project uses the **${displayName}** Memento workspace.\n\nWhen using Memento MCP tools in this project, always pass \`connection_id: "${this.perProjectConnection}"\` to\nscope reads and writes to the correct workspace.\n\nExamples:\n- \`store_memory(content: "...", connection_id: "${this.perProjectConnection}")\`\n- \`recall_memory(query: "...", connection_id: "${this.perProjectConnection}")\`\n- \`find_related(query: "...", connection_id: "${this.perProjectConnection}")\`\n\n> Note: ID-based lookups (recall_memory with id=, update_memory, update_memory_state) route\n> automatically — no connection_id needed for those.`;
+        },
+
+        async downloadPerProjectSnippet() {
+          const conn = this.availableConnections.find(c => c.name === this.perProjectConnection);
+          const displayName = conn ? (conn.display_name || conn.name) : this.perProjectConnection;
+          const url = `/api/integrations/claude-code/config?file=per-project-claude-md&connection=${encodeURIComponent(this.perProjectConnection)}&display_name=${encodeURIComponent(displayName)}`;
+          try {
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error(await resp.text());
+            const blob = await resp.blob();
+            const element = document.createElement('a');
+            element.href = URL.createObjectURL(blob);
+            element.download = `memento-${this.perProjectConnection}-claude-md.md`;
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            this.showNotification('Per-project snippet downloaded!', 'success');
+          } catch (err) {
+            this.showNotification(`Download failed: ${err.message}`, 'error');
+          }
+        },
+
+        toggleTheme() {
+          this.isDarkMode = !this.isDarkMode;
+          if (this.isDarkMode) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+            localStorage.setItem('theme', 'dark');
+          } else {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+          }
+        },
+
+        selectTab(tabName) {
+          this.activeTab = tabName;
+          this.connectionTested = false;
+        },
+
+        navigateTo(view) {
+          window.location.hash = view;
+        },
+
+        // Download config file
+        async downloadConfig(integration, file = '') {
+          this.showNotification(`Downloading ${this.integrations[integration].name} configuration...`, 'info');
+          try {
+            const url = `/api/integrations/${integration}/config${file ? `?file=${file}` : ''}`;
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error(await resp.text());
+            const blob = await resp.blob();
+            const disposition = resp.headers.get('Content-Disposition') || '';
+            const match = disposition.match(/filename=([^\s;]+)/);
+            const filename = match ? match[1] : `memento-${integration}-config.json`;
+            const element = document.createElement('a');
+            element.href = URL.createObjectURL(blob);
+            element.download = filename;
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            this.showNotification(`${this.integrations[integration].name} config downloaded!`, 'success');
+          } catch (err) {
+            this.showNotification(`Download failed: ${err.message}`, 'error');
+          }
+        },
+
+        // Copy path to clipboard
+        copyPath(integration) {
+          const path = this.getConfigPath(integration);
+          this.copyToClipboard(path);
+          this.showNotification(`Path copied: ${path}`, 'success');
+        },
+
+        // Test connection
+        async testConnection(integration) {
+          this.showNotification(`Testing connection...`, 'info');
+          try {
+            const resp = await fetch('/api/integrations/test-connection');
+            const data = await resp.json();
+            this.connectionTested = true;
+            this.connectionStatus = 'success';
+            this.connectionMessage = `✓ Memento server is reachable. ${data.tools_available.length} MCP tools available.`;
+            this.showNotification('Connection test passed!', 'success');
+          } catch (err) {
+            this.connectionTested = true;
+            this.connectionStatus = 'error';
+            this.connectionMessage = `✗ Could not reach Memento server. Is it running?`;
+            this.showNotification('Connection test failed!', 'error');
+          }
+        },
+
+        // Open documentation
+        openDocs(integration) {
+          const docsUrl = this.integrations[integration].docs;
+          window.open(docsUrl, '_blank');
+          this.showNotification(`Opening ${this.integrations[integration].name} documentation...`, 'info');
+        },
+
+        // Utility: Get config path for integration
+        getConfigPath(integration) {
+          const paths = {
+            'claude-desktop': '~/Library/Application Support/Claude',
+            'claude-code': '~/.claude/claude_code_mcp.json',
+            'cursor': '~/.cursor/mcp.json',
+            'windsurf': '~/.codeium/windsurf/mcp_config.json',
+            'openclaw': '~/.openclaw/plugins/',
+            'generic': '/usr/local/bin/memento-mcp'
+          };
+          return paths[integration] || '';
+        },
+
+        // Utility: Copy to clipboard
+        copyToClipboard(text) {
+          navigator.clipboard.writeText(text).then(() => {
+            this.showNotification('Copied to clipboard!', 'success');
+          }).catch(() => {
+            this.showNotification('Failed to copy to clipboard', 'error');
+          });
+        },
+
+        // Notifications
+        showNotification(message, type = 'info') {
+          const id = this.notificationId++;
+          this.notifications.push({ id, message, type });
+          setTimeout(() => {
+            this.notifications = this.notifications.filter(n => n.id !== id);
+          }, 5000);
+        },
+
+        removeNotification(id) {
+          this.notifications = this.notifications.filter(n => n.id !== id);
+        }
+      }));
+    });
+  </script>
+</body>
+</html>

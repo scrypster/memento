@@ -1,0 +1,16 @@
+{
+  "entities": [
+    {
+      "name": "John Doe",
+      "type": "person",
+      "description": "Person mentioned in the context",
+      "confidence": 0.95
+    },
+    {
+      "name": "Acme Corp",
+      "type": "organization",
+      "description": "Organization mentioned as employer",
+      "confidence": 0.92
+    }
+  ]
+}

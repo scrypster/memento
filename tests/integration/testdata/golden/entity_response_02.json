@@ -1,0 +1,22 @@
+{
+  "entities": [
+    {
+      "name": "Kubernetes API Server",
+      "type": "api",
+      "description": "API server component of Kubernetes",
+      "confidence": 0.98
+    },
+    {
+      "name": "etcd",
+      "type": "database",
+      "description": "Distributed key-value store used for consensus",
+      "confidence": 0.97
+    },
+    {
+      "name": "ConfigMaps",
+      "type": "tool",
+      "description": "Kubernetes resource for configuration storage",
+      "confidence": 0.93
+    }
+  ]
+}

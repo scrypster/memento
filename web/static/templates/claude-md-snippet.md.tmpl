@@ -1,0 +1,19 @@
+## Memento MCP — Persistent Memory
+
+The `memento` MCP server provides persistent cross-session memory. Use these tools proactively — don't wait to be asked.
+
+**Store** (`store_memory`) when the user:
+- States a preference or working style ("I prefer X", "always use Y format")
+- Makes an architectural or technical decision
+- Establishes project context that should survive session restarts
+- Explicitly says "remember this" or similar
+
+**Recall** (`recall_memory` or `find_related`) when:
+- Starting a session for a known project — query for relevant context before diving in
+- About to make a recommendation — check for existing preferences first
+- The user asks about past decisions, choices, or "what did we decide about X"
+- Something seems like it may have been discussed in a prior session
+
+**Don't store:** transient debug output, in-progress exploration, or anything session-specific that won't matter next time.
+
+Memories are searchable immediately after storing. Enrichment (entity/relationship extraction) runs asynchronously via local Ollama.

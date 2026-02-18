@@ -1,0 +1,1067 @@
+/* ========================================================================
+   COMPONENTS.CSS - Semantic Reusable Component Classes
+   ========================================================================
+   Following Sonnet's architecture for robust, maintainable component system.
+   All styles use CSS variables from tailwind.config.js theme definitions.
+   Supports both light and dark modes via .light class.
+   ======================================================================== */
+
+/* ========================================================================
+   CARD COMPONENTS - Base cards with variants
+   ======================================================================== */
+
+.card {
+  border-radius: 0.875rem;
+  /* Explicit dark mode background - visible on #0a0a0a app background */
+  background-color: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.light .card {
+  /* Explicit light mode background - white is visible on #fafafa */
+  background-color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(6, 182, 212, 0.15);
+}
+
+.light .card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Accent card - highlighted border variant */
+.card-accent {
+  border: 2px solid var(--color-accent);
+  border-radius: 0.875rem;
+  background-color: var(--color-dark-surface);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.15);
+}
+
+.light .card-accent {
+  background-color: var(--color-light-surface);
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
+}
+
+.card-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(6, 182, 212, 0.25);
+}
+
+/* Stat card - compact card for displaying metrics */
+.card-stat {
+  border-radius: 0.875rem;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.light .card-stat {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border-color: rgba(6, 182, 212, 0.15);
+}
+
+.card-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(6, 182, 212, 0.2);
+}
+
+/* ========================================================================
+   BUTTON COMPONENTS - Base buttons with variants
+   ======================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1rem;
+  border-radius: 0.625rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  user-select: none;
+  gap: 0.5rem;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Primary button - main action button */
+.btn-primary {
+  background-color: var(--color-accent);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-accent-hover);
+  box-shadow: 0 4px 16px rgba(6, 182, 212, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-primary:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Secondary button - alternative action */
+.btn-secondary {
+  background-color: var(--color-purple);
+  color: white;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #7c3aed;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:focus {
+  outline: 2px solid var(--color-purple);
+  outline-offset: 2px;
+}
+
+/* Ghost button - minimal style */
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+}
+
+.light .btn-ghost {
+  color: #0891b2;
+  border-color: #0891b2;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background-color: rgba(6, 182, 212, 0.1);
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.1);
+}
+
+/* Danger button - destructive action */
+.btn-danger {
+  background-color: #ef4444;
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-danger:focus {
+  outline: 2px solid #ef4444;
+  outline-offset: 2px;
+}
+
+/* Small button */
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+/* Large button */
+.btn-lg {
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+}
+
+/* ========================================================================
+   BADGE COMPONENTS - Status and tag indicators
+   ======================================================================== */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+}
+
+/* Success badge - green */
+.badge-success {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.light .badge-success {
+  background-color: #d1fae5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+/* Danger badge - red */
+.badge-danger {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.light .badge-danger {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+/* Warning badge - amber */
+.badge-warning {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.light .badge-warning {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-color: #fde68a;
+}
+
+/* Info badge - cyan */
+.badge-info {
+  background-color: rgba(6, 182, 212, 0.2);
+  color: var(--color-accent);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.light .badge-info {
+  background-color: #cffafe;
+  color: #0891b2;
+  border-color: #a5f3fc;
+}
+
+/* ========================================================================
+   FORM COMPONENTS - Input fields and form controls
+   ======================================================================== */
+
+.field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-light);
+  transition: color 0.2s ease;
+}
+
+.light .field-label {
+  color: #1f2937;
+}
+
+/* Form group - container for input with label */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 0.75rem 1rem;
+  border-radius: 0.625rem;
+  background-color: var(--color-dark-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-light);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+}
+
+.light .form-group input,
+.light .form-group textarea,
+.light .form-group select {
+  background-color: #ffffff;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.light .form-group input::placeholder,
+.light .form-group textarea::placeholder {
+  color: #6b7280;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+  background-color: var(--color-dark-surface);
+}
+
+.light .form-group input:focus,
+.light .form-group textarea:focus,
+.light .form-group select:focus {
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+  background-color: #ffffff;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+/* ========================================================================
+   MEMORY CARD COMPONENTS - Specialized card for memory display
+   ======================================================================== */
+
+.memory-card {
+  border-radius: 0.875rem;
+  /* Explicit dark mode background - #1a1a2e blue-tinted on #0a0a0a dark bg */
+  background-color: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  group: true;
+}
+
+.light .memory-card {
+  /* Explicit light mode background - pure white is visible on #fafafa */
+  background-color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.memory-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(6, 182, 212, 0.15);
+}
+
+.light .memory-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.memory-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: none;
+}
+
+.memory-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  margin: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.light .memory-card-title {
+  color: #111827;
+}
+
+.memory-card:hover .memory-card-title {
+  color: var(--color-accent);
+}
+
+.memory-card-body {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  /* Lighter gray for readability on dark #1a1a2e background */
+  color: #e5e7eb;
+  margin-bottom: 1.25rem;
+}
+
+.light .memory-card-body {
+  /* Darker gray for readability on white background */
+  color: #374151;
+}
+
+.memory-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  color: #6b7280;
+}
+
+.light .memory-card-footer {
+  border-top-color: #e5e7eb;
+  color: #4b5563;
+}
+
+.memory-card-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: var(--color-text-light);
+  font-weight: 500;
+}
+
+.light .memory-card-meta {
+  color: #1f2937;
+}
+
+/* ========================================================================
+   NAVIGATION COMPONENTS - Navigation bars and links
+   ======================================================================== */
+
+.nav {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0;
+  list-style: none;
+  margin: 0;
+}
+
+.nav-link {
+  padding: 0.625rem 1rem;
+  border-radius: 0.625rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.light .nav-link {
+  color: #6b7280;
+}
+
+.nav-link:hover {
+  color: var(--color-accent);
+  background-color: rgba(6, 182, 212, 0.1);
+}
+
+.nav-link.is-active {
+  color: var(--color-accent);
+  background-color: rgba(6, 182, 212, 0.15);
+  border-color: var(--color-accent);
+}
+
+.light .nav-link.is-active {
+  background-color: rgba(6, 182, 212, 0.1);
+}
+
+/* ========================================================================
+   SECTION LABEL COMPONENTS - Section headers and labels
+   ======================================================================== */
+
+.section-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+  margin-bottom: 1rem;
+  margin-top: 0;
+}
+
+.light .section-label {
+  color: #0891b2;
+}
+
+.section-label::before {
+  content: '';
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  margin-right: 0.625rem;
+  vertical-align: middle;
+}
+
+/* ========================================================================
+   ENTITY ITEM COMPONENTS - Entity display items
+   ======================================================================== */
+
+.entity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-dark-surface);
+  transition: all 0.2s ease;
+}
+
+.light .entity-item {
+  background-color: var(--color-light-surface);
+  border-color: #e5e7eb;
+}
+
+.entity-item:hover {
+  background-color: rgba(26, 26, 46, 0.6);
+  transform: translateX(4px);
+}
+
+.light .entity-item:hover {
+  background-color: #f9fafb;
+}
+
+.entity-avatar {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.625rem;
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-purple) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.entity-name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--color-text-light);
+}
+
+.light .entity-name {
+  color: #111827;
+}
+
+.entity-subtitle {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+.light .entity-subtitle {
+  color: #6b7280;
+}
+
+.entity-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.entity-tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  background-color: rgba(6, 182, 212, 0.1);
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.light .entity-tag {
+  background-color: #cffafe;
+  color: #0891b2;
+}
+
+/* ========================================================================
+   CONNECTION ITEM COMPONENTS - Connection display items
+   ======================================================================== */
+
+.connection-item {
+  padding: 1rem;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--color-dark-surface);
+  transition: all 0.2s ease;
+}
+
+.light .connection-item {
+  background-color: var(--color-light-surface);
+  border-color: #e5e7eb;
+}
+
+.connection-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.light .connection-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.connection-item.default {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.light .connection-item.default {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+/* ========================================================================
+   INTERACTIVE STATE UTILITIES - State modifiers
+   ======================================================================== */
+
+.is-active {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+}
+
+.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: wait;
+}
+
+.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.is-success {
+  border: 1px solid #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.light .is-success {
+  background-color: #f0fdf4;
+  border-color: #86efac;
+}
+
+.is-error {
+  border: 1px solid #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.light .is-error {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+}
+
+/* ========================================================================
+   LAYOUT HELPER COMPONENTS - Layout utilities
+   ======================================================================== */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.light .page-header {
+  border-bottom-color: #e5e7eb;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+.light .page-title {
+  color: #111827;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 1.5rem;
+}
+
+.page-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* ========================================================================
+   TYPOGRAPHY UTILITIES - Text styling
+   ======================================================================== */
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.light .text-muted {
+  color: #6b7280;
+}
+
+.text-subtle {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.light .text-subtle {
+  color: #6b7280;
+}
+
+.text-accent {
+  color: var(--color-accent);
+}
+
+.text-success {
+  color: #10b981;
+}
+
+.light .text-success {
+  color: #059669;
+}
+
+.text-error {
+  color: #ef4444;
+}
+
+.light .text-error {
+  color: #dc2626;
+}
+
+.text-warning {
+  color: var(--color-amber);
+}
+
+.light .text-warning {
+  color: #d97706;
+}
+
+/* ========================================================================
+   GLASS EFFECT COMPONENTS - Glassmorphic styling
+   ======================================================================== */
+
+.glass {
+  background: rgba(26, 26, 46, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.light .glass {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+.terminal-block {
+  background-color: var(--color-dark-surface-alt);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--color-accent);
+  overflow-x: auto;
+  line-height: 1.6;
+}
+
+.light .terminal-block {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0891b2;
+}
+
+/* ========================================================================
+   ANIMATION KEYFRAMES - Reusable animations
+   ======================================================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ========================================================================
+   ANIMATION UTILITY CLASSES - Apply animations
+   ======================================================================== */
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.slide-up {
+  animation: slideUp 0.4s ease-out forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.slide-down {
+  animation: slideDown 0.4s ease-out forwards;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.slide-left {
+  animation: slideLeft 0.4s ease-out forwards;
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.slide-right {
+  animation: slideRight 0.4s ease-out forwards;
+  opacity: 0;
+  transform: translateX(10px);
+}
+
+.scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ========================================================================
+   ELEVATION AND SHADOW UTILITIES - Depth effects
+   ======================================================================== */
+
+.shadow-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================================================
+   FOCUS AND ACCESSIBILITY UTILITIES
+   ======================================================================== */
+
+.focus-ring {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ========================================================================
+   RESPONSIVE UTILITIES - Media queries
+   ======================================================================== */
+
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .hide-mobile {
+    display: block;
+  }
+
+  .show-mobile {
+    display: none;
+  }
+}
+
+.show-mobile {
+  display: block;
+}
+
+/* ========================================================================
+   UTILITY SPACING - Padding and margin helpers
+   ======================================================================== */
+
+.p-2 { padding: 0.5rem; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.p-8 { padding: 2rem; }
+
+.m-0 { margin: 0; }
+.m-2 { margin: 0.5rem; }
+.m-4 { margin: 1rem; }
+.m-6 { margin: 1.5rem; }
+
+.gap-2 { gap: 0.5rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+
+/* ========================================================================
+   BORDER UTILITIES - Border styling
+   ======================================================================== */
+
+.border {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.light .border {
+  border-color: #e5e7eb;
+}
+
+.border-accent {
+  border: 2px solid var(--color-accent);
+}
+
+.border-t {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.light .border-t {
+  border-top-color: #e5e7eb;
+}
+
+.border-b {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.light .border-b {
+  border-bottom-color: #e5e7eb;
+}
+
+/* ========================================================================
+   ROUNDED UTILITIES - Border radius
+   ======================================================================== */
+
+.rounded-sm { border-radius: 0.375rem; }
+.rounded { border-radius: 0.625rem; }
+.rounded-lg { border-radius: 0.875rem; }
+.rounded-full { border-radius: 9999px; }
+
+/* End of components.css */

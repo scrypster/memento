@@ -1,0 +1,66 @@
+# Git files
+.git/
+.github/
+.gitignore
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation files (except key ones)
+*.md
+!README.md
+!README.Docker.md
+
+# Data and runtime files
+data/
+backups/
+ollama-models/
+*.db
+*.db-shm
+*.db-wal
+
+# Test files and artifacts
+tests/
+*.test
+*.out
+coverage.txt
+coverage.html
+
+# Task tracking and temporary files
+TASK*.md
+COMMIT*.txt
+*_SUMMARY.md
+*_CHECKLIST.md
+ARCHITECTURE.md
+STORAGE_IMPLEMENTATION.md
+
+# Build artifacts
+/memento
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Environment files (copied separately)
+.env
+.env.local
+
+# Dependencies (will be downloaded during build)
+vendor/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (avoid recursion)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Scripts (exclude all except entrypoint)
+scripts/
+!scripts/docker-entrypoint.sh

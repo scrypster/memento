@@ -1,0 +1,1492 @@
+/* Component System CSS - Reusable Component Classes for Memento UI */
+/* Supports light and dark modes with full Tailwind integration */
+
+/* ====================================================================
+   CARD COMPONENT - Base Card with polished styling
+   ==================================================================== */
+
+.card-polished {
+  border-radius: 0.75rem;
+  /* Explicit dark mode background - prevents invisible dark-on-dark */
+  background-color: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: all 300ms ease-out;
+}
+
+.card-polished:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.35);
+  transform: translateY(-3px);
+}
+
+html.light .card-polished {
+  /* Explicit light mode background - prevents invisible white-on-white */
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+html.light .card-polished:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+}
+
+.shadow-elevation {
+  box-shadow: 0 10px 25px rgba(6, 182, 212, 0.15);
+}
+
+html.light .shadow-elevation {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* ====================================================================
+   BUTTON COMPONENTS - Primary, Secondary, Danger variants
+   ==================================================================== */
+
+/* Primary Button - Teal/Cyan accent */
+.btn-primary {
+  @apply px-4 py-2 rounded-lg font-medium
+         text-white
+         transition-all duration-200 ease-out
+         disabled:opacity-50 disabled:cursor-not-allowed;
+
+  background-color: var(--color-primary);
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+  }
+
+  &:active:not(:disabled) {
+    background-color: var(--color-primary-active);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* Secondary Button - Purple accent */
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  background-color: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  transition: all 200ms ease-out;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(168, 85, 247, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+  }
+}
+
+html.light .btn-secondary {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+  border-color: #d8b4fe;
+
+  &:hover:not(:disabled) {
+    background-color: #ede9fe;
+  }
+}
+
+/* Danger Button - Red alert */
+.btn-danger {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  background-color: var(--color-danger);
+  color: white;
+  border: none;
+  transition: all 200ms ease-out;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-danger-hover);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-danger);
+    outline-offset: 2px;
+  }
+}
+
+/* ====================================================================
+   BADGE COMPONENTS - Status indicators with color variants
+   ==================================================================== */
+
+/* Badge Base - Common properties */
+.badge-base {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 200ms ease-out;
+}
+
+/* Success Badge - Green */
+.badge-success {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+html.light .badge-success {
+  background-color: #d1fae5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+/* Error Badge - Red */
+.badge-error {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+html.light .badge-error {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+/* Warning Badge - Yellow/Amber */
+.badge-warning {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+html.light .badge-warning {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-color: #fde68a;
+}
+
+/* Info Badge - Cyan */
+.badge-info {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: rgba(6, 182, 212, 0.2);
+  color: #06b6d4;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+}
+
+html.light .badge-info {
+  background-color: #cffafe;
+  color: #0891b2;
+  border-color: #a5f3fc;
+}
+
+/* Debug Badge - Included (Green) */
+.badge-debug-included {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+html.light .badge-debug-included {
+  background-color: #d1fae5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+/* Debug Badge - Candidate (Yellow) */
+.badge-debug-candidate {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+html.light .badge-debug-candidate {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-color: #fde68a;
+}
+
+/* Debug Badge - Filtered (Red) */
+.badge-debug-filtered {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+html.light .badge-debug-filtered {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+/* ====================================================================
+   INPUT COMPONENTS - Refined input fields with color system
+   ==================================================================== */
+
+.input-field {
+  @apply w-full px-4 py-3 rounded-lg transition-all duration-200 ease-out;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+
+  &::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  &:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-glow);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* ====================================================================
+   SECTION LABELS - Cyan small-cap section headers
+   ==================================================================== */
+
+.section-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  transition: color 200ms ease;
+}
+
+.section-label::before {
+  content: '';
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  margin-right: 0.625rem;
+  vertical-align: middle;
+}
+
+/* ====================================================================
+   CONFIG SECTION - Blue left border configuration cards
+   ==================================================================== */
+
+.config-section {
+  @apply p-6 rounded-lg
+         bg-white dark:bg-gray-800
+         border-l-4 border-l-blue-500 dark:border-l-blue-400
+         shadow-sm dark:shadow-md
+         border border-gray-200 dark:border-gray-700 border-l-0
+         transition-all duration-300 ease-out;
+}
+
+.config-section:hover {
+  @apply shadow-md dark:shadow-lg;
+}
+
+.config-section-title {
+  @apply text-lg font-semibold text-gray-900 dark:text-white
+         mb-4 flex items-center gap-2;
+}
+
+.config-section-title::before {
+  @apply block w-1 h-5 rounded-sm bg-blue-500 dark:bg-blue-400;
+  content: '';
+}
+
+/* ====================================================================
+   ENTITY ITEM - Entity display layout with metadata
+   ==================================================================== */
+
+.entity-item {
+  @apply flex items-start gap-4 p-4
+         rounded-lg border border-gray-200 dark:border-gray-700
+         bg-white dark:bg-gray-800/50
+         hover:bg-gray-50 dark:hover:bg-gray-700/50
+         transition-colors duration-200 ease-out;
+}
+
+.entity-item-avatar {
+  @apply flex-shrink-0 w-10 h-10 rounded-lg
+         bg-gradient-to-br from-cyan-400 to-blue-500
+         flex items-center justify-center
+         text-white text-sm font-semibold;
+}
+
+.entity-item-content {
+  @apply flex-1 min-w-0;
+}
+
+.entity-item-title {
+  @apply text-sm font-semibold text-gray-900 dark:text-white
+         truncate transition-colors duration-200
+         group-hover:text-cyan-600 dark:group-hover:text-cyan-400;
+}
+
+.entity-item-subtitle {
+  @apply text-xs text-gray-500 dark:text-gray-400
+         mt-0.5 truncate;
+}
+
+.entity-item-meta {
+  @apply flex flex-wrap gap-2 mt-2;
+}
+
+.entity-item-tag {
+  @apply inline-flex px-2 py-1 text-xs rounded
+         bg-gray-100 dark:bg-gray-700
+         text-gray-700 dark:text-gray-300
+         font-medium;
+}
+
+/* ====================================================================
+   MEMORY CARD - Memory/feed card styling with status
+   ==================================================================== */
+
+.memory-card {
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 300ms ease-out;
+  /* Explicit dark mode background for maximum visibility */
+  background-color: #1a1a2e;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+html.light .memory-card {
+  /* Explicit light mode background - pure white on gray background */
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.memory-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.35);
+}
+
+html.light .memory-card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.memory-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.memory-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: color 200ms ease;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memory-card:hover .memory-card-title {
+  color: var(--color-primary);
+}
+
+.memory-card-status {
+  display: inline-flex;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  transition: all 200ms ease;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.memory-card-status.pending {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+html.light .memory-card-status.pending {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-color: #fde68a;
+}
+
+.memory-card-status.complete,
+.memory-card-status.enriched {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+html.light .memory-card-status.complete,
+html.light .memory-card-status.enriched {
+  background-color: #d1fae5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.memory-card-status.failed {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+html.light .memory-card-status.failed {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.memory-card-content {
+  /* Explicit readable gray - #e5e7eb is light enough to read on #1a1a2e dark bg */
+  color: #e5e7eb;
+  margin-bottom: 1.25rem;
+  line-height: 1.625;
+  font-size: 0.875rem;
+}
+
+html.light .memory-card-content {
+  /* Explicit dark gray for readability on white background */
+  color: #374151;
+}
+
+.memory-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.75rem;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.memory-card-footer span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.memory-card-footer > span:first-child::after {
+  content: "•";
+  margin-left: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.memory-card-footer > span:last-child {
+  margin-left: 0;
+}
+
+.memory-card-footer span > span:first-child {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.memory-card-meta {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ====================================================================
+   CONNECTION ITEM - Connection list item with styling
+   ==================================================================== */
+
+.connection-item {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-strong);
+  background-color: var(--surface-raised);
+  transition: all 200ms ease-out;
+}
+
+.connection-item:hover {
+  background-color: var(--interactive-hover);
+}
+
+html.light .connection-item {
+  border-color: #e5e7eb;
+}
+
+html.light .connection-item:hover {
+  background-color: #f9fafb;
+}
+
+.connection-item.default {
+  border-color: var(--color-info);
+  background-color: var(--color-info-subtle);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+html.light .connection-item.default {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.connection-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.connection-item-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.connection-item-badge {
+  display: inline-flex;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  background-color: rgba(59, 130, 246, 0.2);
+  color: var(--color-info);
+  font-weight: 600;
+}
+
+html.light .connection-item-badge {
+  background-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.connection-item-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.connection-item-meta {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-top: 0.5rem;
+}
+
+.connection-item-type {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: var(--surface-inset);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+}
+
+.connection-item-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.connection-item-btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  transition: all 200ms ease;
+  cursor: pointer;
+  border: none;
+}
+
+.connection-item-btn.default {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: var(--color-info);
+}
+
+.connection-item-btn.default:hover {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+html.light .connection-item-btn.default {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+html.light .connection-item-btn.default:hover {
+  background-color: #bfdbfe;
+}
+
+.connection-item-btn.danger {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--color-danger);
+}
+
+.connection-item-btn.danger:hover {
+  background-color: rgba(239, 68, 68, 0.3);
+}
+
+html.light .connection-item-btn.danger {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+html.light .connection-item-btn.danger:hover {
+  background-color: #fecaca;
+}
+
+/* ====================================================================
+   CONNECTION SELECTOR - Dropdown selector styling
+   ==================================================================== */
+
+.connection-selector {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 200ms ease-out;
+  cursor: pointer;
+}
+
+.connection-selector:hover {
+  background-color: var(--interactive-hover);
+}
+
+.connection-selector:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.connection-selector:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.connection-selector option {
+  background-color: var(--surface-raised);
+  color: var(--text-primary);
+}
+
+/* ====================================================================
+   UTILITY CLASSES - Animation and interactive effects
+   ==================================================================== */
+
+/* Hover Lift Effect - Subtle elevation on hover */
+.hover-lift {
+  @apply transition-all duration-300 ease-out;
+}
+
+.hover-lift:hover {
+  @apply -translate-y-2 shadow-lg dark:shadow-2xl;
+}
+
+/* Fade In Animation */
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide Up Animation */
+.slide-up {
+  animation: slideUp 0.4s ease-out forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide Down Animation */
+.slide-down {
+  animation: slideDown 0.4s ease-out forwards;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse Effect - Subtle breathing animation */
+.pulse-soft {
+  animation: pulseSoft 2s ease-in-out infinite;
+}
+
+@keyframes pulseSoft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Glow Effect - Subtle glow highlight */
+.glow {
+  @apply shadow-lg dark:shadow-xl;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.dark .glow {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+}
+
+/* Scale Animation - Grow in effect */
+.scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ====================================================================
+   INTERACTIVE STATE UTILITIES
+   ==================================================================== */
+
+/* Active State - for buttons and interactive elements */
+.is-active {
+  @apply ring-2 ring-cyan-400 dark:ring-cyan-500
+         ring-offset-2 dark:ring-offset-gray-800
+         shadow-md dark:shadow-lg;
+}
+
+/* Loading State - dimmed with pointer-events disabled */
+.is-loading {
+  @apply opacity-70 pointer-events-none
+         cursor-wait;
+}
+
+/* Disabled State - reduced opacity */
+.is-disabled {
+  @apply opacity-50 cursor-not-allowed
+         pointer-events-none;
+}
+
+/* Success State - green highlight */
+.is-success {
+  @apply border-green-500 dark:border-green-400
+         bg-green-50 dark:bg-green-900/20
+         ring-1 ring-green-200 dark:ring-green-700;
+}
+
+/* Error State - red highlight */
+.is-error {
+  @apply border-red-500 dark:border-red-400
+         bg-red-50 dark:bg-red-900/20
+         ring-1 ring-red-200 dark:ring-red-700;
+}
+
+/* Warning State - yellow highlight */
+.is-warning {
+  @apply border-yellow-500 dark:border-yellow-400
+         bg-yellow-50 dark:bg-yellow-900/20
+         ring-1 ring-yellow-200 dark:ring-yellow-700;
+}
+
+/* ====================================================================
+   LAYOUT UTILITIES - Container and spacing helpers
+   ==================================================================== */
+
+/* Card Grid - responsive grid for card layouts */
+.card-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3
+         gap-6;
+}
+
+/* Section Container - padded container for sections */
+.section-container {
+  @apply px-4 py-6 sm:px-6 lg:px-8;
+}
+
+/* Content Container - max-width constraint */
+.content-container {
+  @apply max-w-5xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* ====================================================================
+   TEXT AND TYPOGRAPHY UTILITIES
+   ==================================================================== */
+
+/* Truncate on overflow */
+.truncate-lines {
+  @apply overflow-hidden text-ellipsis;
+}
+
+.truncate-lines-2 {
+  @apply line-clamp-2;
+}
+
+.truncate-lines-3 {
+  @apply line-clamp-3;
+}
+
+/* Subtle text color */
+.text-muted {
+  @apply text-gray-500 dark:text-gray-400;
+}
+
+.text-muted-light {
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+/* ====================================================================
+   FORM UTILITIES - Input and form field styling
+   ==================================================================== */
+
+/* Textarea Field */
+.textarea-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 200ms ease-out;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  resize: none;
+}
+
+.textarea-field::placeholder {
+  color: var(--text-tertiary);
+}
+
+.textarea-field:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+.textarea-field:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Label Base */
+.label-base {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+/* Form Group - input with label */
+.form-group {
+  @apply space-y-2;
+}
+
+/* ====================================================================
+   BORDER AND SHADOW UTILITIES
+   ==================================================================== */
+
+/* Subtle border - light divider */
+.border-subtle {
+  @apply border-gray-200 dark:border-gray-700;
+}
+
+/* Accent border - colored divider */
+.border-accent {
+  @apply border-cyan-500 dark:border-cyan-400;
+}
+
+/* Elevation shadow - depth effect */
+.shadow-elevated {
+  @apply shadow-lg dark:shadow-2xl;
+}
+
+/* Inset shadow - depth effect */
+.shadow-inset {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dark .shadow-inset {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ====================================================================
+   RESPONSIVE UTILITIES
+   ==================================================================== */
+
+/* Hide on mobile, show on tablet+ */
+.hide-mobile {
+  @apply hidden sm:block;
+}
+
+/* Show on mobile, hide on tablet+ */
+.show-mobile {
+  @apply sm:hidden;
+}
+
+/* Mobile-optimized button sizes */
+.btn-mobile {
+  @apply px-3 py-2 text-sm;
+}
+
+/* ====================================================================
+   ACCESSIBILITY UTILITIES
+   ==================================================================== */
+
+/* Focus-visible for keyboard navigation */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-cyan-400
+         focus:ring-offset-2 dark:focus:ring-offset-gray-800;
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ====================================================================
+   GRADIENT UTILITIES
+   ==================================================================== */
+
+/* Gradient text for emphasis */
+.gradient-text {
+  @apply bg-gradient-to-r from-cyan-500 to-purple-600
+         bg-clip-text text-transparent;
+}
+
+/* Gradient background - subtle */
+.gradient-bg {
+  @apply bg-gradient-to-br from-white to-gray-50
+         dark:from-gray-800 dark:to-gray-900;
+}
+
+/* ====================================================================
+   RELATIONSHIP COMPONENTS - Relationship list and item styling
+   ==================================================================== */
+
+/* Relationship Item - Container for each relationship in list */
+.relationship-item {
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: 220px 160px 50px 220px 160px 130px;
+  gap: 1rem;
+  align-items: center;
+  background-color: var(--surface-raised);
+  border: 0;
+  border-bottom: 1px solid var(--border-default);
+  transition: all 200ms ease-out;
+}
+
+.relationship-item:last-child {
+  border-bottom: 0;
+}
+
+.relationship-item:hover {
+  background-color: var(--interactive-hover);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+html.light .relationship-item {
+  border-bottom-color: #e5e7eb;
+}
+
+html.light .relationship-item:hover {
+  background-color: #f9fafb;
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 1024px) {
+  .relationship-item {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+/* Column alignment helpers */
+.relationship-item > div:nth-child(1) {
+  /* Source entity - left aligned (default) */
+  justify-self: start;
+  min-width: 0;
+}
+
+.relationship-item > div:nth-child(2) {
+  /* Relationship pill - centered */
+  justify-self: center;
+  min-width: 0;
+}
+
+.relationship-item > div:nth-child(3) {
+  /* Arrow - centered */
+  justify-self: center;
+  min-width: 0;
+}
+
+.relationship-item > div:nth-child(4) {
+  /* Target entity - left aligned (default) */
+  justify-self: start;
+  min-width: 0;
+}
+
+.relationship-item > div:nth-child(5) {
+  /* Progress bar + percentage - right aligned */
+  justify-self: end;
+  min-width: 0;
+}
+
+.relationship-item > div:nth-child(6) {
+  /* Date - right aligned */
+  justify-self: end;
+  min-width: 0;
+}
+
+/* Relationship Type Pill - Purple badge for relationship type */
+.relationship-type-pill {
+  @apply inline-flex items-center px-3 py-1.5 rounded-full
+         text-xs font-semibold
+         transition-all duration-200 ease-out;
+
+  background-color: var(--color-secondary);
+  color: white;
+
+  &:hover {
+    background-color: var(--color-secondary-hover);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.25);
+  }
+}
+
+/* Relationship Progress Bar - Green to blue gradient */
+.relationship-progress-bar {
+  @apply bg-gradient-to-r from-green-400 to-blue-500
+         h-full rounded-full
+         transition-all duration-300;
+}
+
+/* ====================================================================
+   SCROLLBAR STYLING
+   ==================================================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-dark-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-dark-surface-alt);
+  border-radius: 4px;
+  transition: background 200ms ease-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+.light ::-webkit-scrollbar-track {
+  background: var(--color-light-bg);
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* ====================================================================
+   TEXT SELECTION
+   ==================================================================== */
+
+::selection {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* ====================================================================
+   APP NAVIGATION - Top nav bar with glass effect
+   ==================================================================== */
+
+.app-nav {
+  background-color: rgba(10, 10, 10, 0.85);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html.light .app-nav {
+  background-color: rgba(250, 250, 250, 0.85);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Reset base.css button styles for nav-btn (navigation link buttons) */
+.nav-btn {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.nav-btn:hover:not(:disabled) {
+  transform: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.app-nav select {
+  background-color: var(--surface-raised);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.app-nav select:hover {
+  background-color: var(--interactive-hover);
+}
+
+/* ====================================================================
+   THEME OVERRIDE - Map html.light class to undo dark Tailwind defaults
+   The HTML uses Tailwind dark: variants (which need html.dark class).
+   Since we use html.light instead, we provide explicit light-mode
+   overrides here for all the common Tailwind patterns used in index.html.
+   ==================================================================== */
+
+/* Background overrides for light mode */
+html.light body {
+  background-color: var(--surface-app);
+  color: var(--text-primary);
+}
+
+/* Tailwind gray class overrides for light mode */
+html.light .text-gray-900,
+html.light .text-gray-800 {
+  color: #111827;
+}
+
+html.light .text-gray-700 {
+  color: #374151;
+}
+
+html.light .text-gray-600,
+html.light .text-gray-500 {
+  color: #6b7280;
+}
+
+html.light .text-gray-400 {
+  color: #9ca3af;
+}
+
+html.light .text-gray-300 {
+  color: #d1d5db;
+}
+
+/* Background overrides for gray in light mode */
+html.light .bg-white {
+  background-color: #ffffff;
+}
+
+html.light .bg-gray-50 {
+  background-color: #f9fafb;
+}
+
+html.light .bg-gray-100 {
+  background-color: #f3f4f6;
+}
+
+html.light .bg-gray-700 {
+  background-color: #374151;
+}
+
+html.light .bg-gray-800 {
+  background-color: #1f2937;
+}
+
+/* Border overrides for light mode */
+html.light .border-gray-200 {
+  border-color: #e5e7eb;
+}
+
+html.light .border-gray-300 {
+  border-color: #d1d5db;
+}
+
+html.light .border-gray-600 {
+  border-color: #4b5563;
+}
+
+html.light .border-gray-700 {
+  border-color: #374151;
+}
+
+/* Override elements that have BOTH dark: and default classes  */
+/* In dark mode (default): bg-white = white (wrong), we need dark bg */
+/* In light mode: bg-white = white (correct) */
+
+/* Page sections in dark mode (no .light class) should use dark bg */
+/* The dark mode default is already handled by :root variables */
+/* We only need to ensure light mode shows the correct colors */
+
+/* Graph tooltip and legend overlays */
+html.light .card-polished.bg-white\/95 {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+}
+
+/* Dropdown menus in light mode */
+html.light .bg-white\/95 {
+  background-color: rgba(255, 255, 255, 0.98);
+}
+
+html.light .bg-gray-800\/95 {
+  background-color: rgba(255, 255, 255, 0.98);
+}
+
+html.light .border-gray-200\/50 {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+html.light .border-gray-700\/50 {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Color-specific text in light mode */
+html.light .text-yellow-600 {
+  color: #d97706;
+}
+
+html.light .text-yellow-400 {
+  color: #f59e0b;
+}
+
+html.light .text-green-600 {
+  color: #059669;
+}
+
+html.light .text-green-400 {
+  color: #10b981;
+}
+
+html.light .text-green-500 {
+  color: #10b981;
+}
+
+html.light .text-red-400 {
+  color: #ef4444;
+}
+
+html.light .text-cyan-600 {
+  color: #0891b2;
+}
+
+html.light .text-cyan-400 {
+  color: #06b6d4;
+}
+
+html.light .text-cyan-300 {
+  color: #0891b2;
+}
+
+html.light .text-cyan-800 {
+  color: #155e75;
+}
+
+/* Hover text colors in light mode */
+html.light .hover\:text-gray-900:hover {
+  color: #111827;
+}
+
+html.light .hover\:text-cyan-800:hover {
+  color: #155e75;
+}
+
+html.light .hover\:text-cyan-300:hover {
+  color: #0891b2;
+}
+
+/* Hover backgrounds in light mode */
+html.light .hover\:bg-gray-100:hover {
+  background-color: #f3f4f6;
+}
+
+html.light .hover\:bg-gray-700\/50:hover {
+  background-color: rgba(249, 250, 251, 0.9);
+}
+
+html.light .hover\:bg-cyan-50:hover {
+  background-color: #ecfeff;
+}
+
+html.light .hover\:bg-gray-50:hover {
+  background-color: #f9fafb;
+}
+
+/* Gradient backgrounds in light mode */
+html.light .bg-cyan-100\/50 {
+  background-color: rgba(207, 250, 254, 0.5);
+}
+
+html.light .bg-cyan-900\/30 {
+  background-color: rgba(207, 250, 254, 0.5);
+}
+
+html.light .border-cyan-200\/50 {
+  border-color: rgba(165, 243, 252, 0.8);
+}
+
+html.light .border-cyan-700\/50 {
+  border-color: rgba(165, 243, 252, 0.8);
+}
+
+/* Form inputs in dark mode (default, no .light) - use dark surface */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea,
+select {
+  background-color: var(--surface-raised);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+/* Spinner border color in light mode */
+html.light .border-b-2 {
+  border-bottom-width: 2px;
+}
+
+/* Debug page: blue buttons in light mode */
+html.light .bg-blue-600 {
+  background-color: #2563eb;
+}
+
+html.light .bg-blue-600:hover {
+  background-color: #1d4ed8;
+}
+
+html.light .bg-red-100 {
+  background-color: #fee2e2;
+}
+
+html.light .text-red-800 {
+  color: #991b1b;
+}
+
+html.light .border-red-500 {
+  border-color: #ef4444;
+}
+
+/* White text inside colored backgrounds stays white */
+html.light .text-white {
+  color: #ffffff;
+}
+
+/* Dark mode (default, no .light): ensure body uses --surface-app */
+body {
+  background-color: var(--surface-app);
+  color: var(--text-primary);
+}
+
+/* ====================================================================
+   SETTINGS PAGE - Inline element overrides
+   ==================================================================== */
+
+/* Settings cards that use card-polished are already handled */
+/* Additional settings-specific text overrides */
+html.light dt,
+html.light .settings-label {
+  color: var(--text-primary);
+}
+
+html.light dd,
+html.light .settings-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+::-moz-selection {
+  background-color: var(--color-primary);
+  color: white;
+}

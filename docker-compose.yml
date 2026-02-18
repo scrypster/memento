@@ -1,0 +1,153 @@
+version: '3.8'
+
+services:
+  # Main Memento application
+  memento:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: memento-app
+    ports:
+      - "6363:6363"
+    environment:
+      # Server configuration
+      - MEMENTO_PORT=6363
+      - MEMENTO_HOST=0.0.0.0
+
+      # Storage configuration
+      - MEMENTO_STORAGE_ENGINE=sqlite
+      - MEMENTO_DATA_PATH=/data
+
+      # LLM configuration
+      - MEMENTO_LLM_PROVIDER=ollama
+      - MEMENTO_OLLAMA_URL=http://ollama:11434
+      - MEMENTO_OLLAMA_MODEL=qwen2.5:7b
+      - MEMENTO_EMBEDDING_MODEL=nomic-embed-text
+
+      # Connections config
+      - MEMENTO_CONNECTIONS_CONFIG=/app/config/connections.json
+
+      # Backup configuration
+      - MEMENTO_BACKUP_ENABLED=true
+      - MEMENTO_BACKUP_PATH=/backups
+      - MEMENTO_BACKUP_INTERVAL=1h
+
+      # Feature flags
+      - MEMENTO_ENABLE_WEB_UI=true
+      - MEMENTO_ENABLE_MCP=true
+      - MEMENTO_ENABLE_REST=true
+    volumes:
+      - memento-data:/data
+      - memento-backups:/backups
+      - memento-config:/app/config
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - memento-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6363/api/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Ollama LLM service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: memento-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    restart: unless-stopped
+    networks:
+      - memento-network
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 5
+
+  # Automated backup service
+  backup:
+    build:
+      context: .
+      dockerfile: Dockerfile.backup
+    container_name: memento-backup
+    environment:
+      - BACKUP_INTERVAL=3600        # 1 hour in seconds
+      - BACKUP_RETENTION_DAYS=7     # Keep backups for 7 days
+      - BACKUP_SOURCE=/data
+      - BACKUP_DEST=/backups
+    volumes:
+      - memento-data:/data:ro       # Read-only access to database
+      - memento-backups:/backups
+    depends_on:
+      memento:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - memento-network
+
+  # PostgreSQL database (optional - enable with profiles)
+  # Start with: docker-compose --profile postgres up -d
+  postgres:
+    image: postgres:16-alpine
+    container_name: memento-postgres
+    profiles: ["postgres"]
+    ports:
+      - "5433:5432"  # External port 5433 to avoid conflicts
+    environment:
+      - POSTGRES_USER=memento
+      - POSTGRES_PASSWORD=memento_dev_password
+      - POSTGRES_DB=memento
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - memento-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U memento"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=100"
+      - "-c"
+      - "shared_buffers=256MB"
+
+# Named volumes for persistent data
+volumes:
+  memento-data:
+    driver: local
+    name: memento-data
+
+  ollama-models:
+    driver: local
+    name: ollama-models
+
+  memento-backups:
+    driver: local
+    name: memento-backups
+
+  memento-config:
+    driver: local
+    name: memento-config
+
+  postgres-data:
+    driver: local
+    name: memento-postgres-data
+
+# Internal network for service communication
+networks:
+  memento-network:
+    driver: bridge
+    name: memento-network

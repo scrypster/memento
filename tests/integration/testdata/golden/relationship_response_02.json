@@ -1,0 +1,18 @@
+{
+  "relationships": [
+    {
+      "from": "ent:api:authentication-service",
+      "to": "ent:database:user-database",
+      "type": "depends_on",
+      "description": "Authentication service depends on user database",
+      "confidence": 0.96
+    },
+    {
+      "from": "ent:api:authentication-service",
+      "to": "ent:database:user-database",
+      "type": "uses",
+      "description": "Authentication service uses user database for lookups",
+      "confidence": 0.94
+    }
+  ]
+}
