@@ -248,7 +248,7 @@ func TestWebUI_AssetVerification(t *testing.T) {
 	// Verify vendor assets exist (resolve relative to project root)
 	projectRoot := filepath.Dir(mustGetwd(t))
 	alpinePath := filepath.Join(projectRoot, "web/static/vendor/alpine-3.14.9.min.js")
-	tailwindPath := filepath.Join(projectRoot, "web/static/css/tailwind.min.css")
+	tailwindPath := filepath.Join(projectRoot, "web/static/dist/assets/main.css")
 
 	// Check Alpine.js
 	alpineInfo, err := os.Stat(alpinePath)
@@ -257,8 +257,8 @@ func TestWebUI_AssetVerification(t *testing.T) {
 
 	// Check Tailwind CSS
 	tailwindInfo, err := os.Stat(tailwindPath)
-	require.NoError(t, err, "Tailwind CSS not found - run 'make vendor-assets'")
-	assert.Greater(t, tailwindInfo.Size(), int64(1000), "Tailwind CSS file too small")
+	require.NoError(t, err, "CSS bundle not found - run 'make assets'")
+	assert.Greater(t, tailwindInfo.Size(), int64(1000), "CSS bundle file too small")
 
 	// Verify they're accessible via HTTP
 	tmpDir := t.TempDir()
@@ -305,8 +305,8 @@ func TestWebUI_AssetVerification(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Contains(t, resp.Header.Get("Content-Type"), "javascript")
 
-	// Test Tailwind CSS HTTP access
-	resp, err = http.Get(baseURL + "/static/css/tailwind.min.css")
+	// Test CSS bundle HTTP access
+	resp, err = http.Get(baseURL + "/static/dist/assets/main.css")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)

@@ -58,7 +58,7 @@ func (s *MemoryStore) FullTextSearch(ctx context.Context, opts storage.SearchOpt
 			m.access_count, m.last_accessed_at, m.decay_score, m.decay_updated_at
 		FROM memories_fts fts
 		JOIN memories m ON m.rowid = fts.rowid
-		WHERE memories_fts MATCH ?
+		WHERE memories_fts MATCH ? AND m.deleted_at IS NULL
 		ORDER BY rank
 		LIMIT ? OFFSET ?
 	`
@@ -80,8 +80,9 @@ func (s *MemoryStore) FullTextSearch(ctx context.Context, opts storage.SearchOpt
 	// determine whether more pages exist.
 	const countSQL = `
 		SELECT COUNT(*)
-		FROM memories_fts
-		WHERE memories_fts MATCH ?
+		FROM memories_fts fts
+		JOIN memories m ON m.rowid = fts.rowid
+		WHERE memories_fts MATCH ? AND m.deleted_at IS NULL
 	`
 	var total int
 	if err := s.db.QueryRowContext(ctx, countSQL, ftsQuery).Scan(&total); err != nil {
@@ -137,6 +138,7 @@ func (s *MemoryStore) VectorSearch(ctx context.Context, query []float64, opts st
 		SELECT e.memory_id, e.embedding, e.dimension
 		FROM embeddings e
 		JOIN memories m ON m.id = e.memory_id
+		WHERE m.deleted_at IS NULL
 		ORDER BY m.created_at DESC
 		LIMIT ?`, vectorSearchMaxCandidates)
 	if err != nil {

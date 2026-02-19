@@ -2,6 +2,8 @@ package sqlite
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -685,5 +687,110 @@ func TestEvolveMemory_CreatesNewVersionAndSupersedes(t *testing.T) {
 
 	if retrievedOriginal.State != types.StateSuperseded {
 		t.Errorf("State: want %s, got %s", types.StateSuperseded, retrievedOriginal.State)
+	}
+}
+
+// TestDbPathFromDSN verifies DSN parsing for bare paths, file: URIs, and in-memory.
+func TestDbPathFromDSN(t *testing.T) {
+	tests := []struct {
+		name string
+		dsn  string
+		want string
+	}{
+		{"in-memory", ":memory:", ""},
+		{"empty", "", ""},
+		{"bare path", "/tmp/test.db", "/tmp/test.db"},
+		{"file URI bare", "file:/tmp/test.db", "/tmp/test.db"},
+		{"file URI with params", "file:/tmp/test.db?mode=rwc&_journal=WAL", "/tmp/test.db"},
+		{"file URI memory", "file::memory:", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := dbPathFromDSN(tt.dsn)
+			if got != tt.want {
+				t.Errorf("dbPathFromDSN(%q) = %q, want %q", tt.dsn, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestClose_WALCheckpoint verifies that Close() flushes the WAL so -shm is removed.
+func TestClose_WALCheckpoint(t *testing.T) {
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "checkpoint-test.db")
+
+	store, err := NewMemoryStore(dbPath)
+	if err != nil {
+		t.Fatalf("NewMemoryStore() failed: %v", err)
+	}
+
+	// Write some data to generate WAL activity.
+	ctx := context.Background()
+	mem := &types.Memory{
+		ID:      "mem:test:wal-checkpoint",
+		Content: "WAL checkpoint test data",
+		Source:  "test",
+	}
+	if err := store.Store(ctx, mem); err != nil {
+		t.Fatalf("Store() failed: %v", err)
+	}
+
+	// Close should checkpoint and remove -shm.
+	if err := store.Close(); err != nil {
+		t.Fatalf("Close() failed: %v", err)
+	}
+
+	shmPath := dbPath + "-shm"
+	if _, err := os.Stat(shmPath); err == nil {
+		t.Errorf("-shm file still exists after Close(): %s", shmPath)
+	}
+}
+
+// TestNewMemoryStore_RecoverStaleWAL verifies that NewMemoryStore can open a
+// database after stale -shm files are left behind by a crashed process.
+func TestNewMemoryStore_RecoverStaleWAL(t *testing.T) {
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "stale-wal-test.db")
+
+	// Create a valid database and close it cleanly.
+	store, err := NewMemoryStore(dbPath)
+	if err != nil {
+		t.Fatalf("initial NewMemoryStore() failed: %v", err)
+	}
+
+	ctx := context.Background()
+	mem := &types.Memory{
+		ID:      "mem:test:stale-wal",
+		Content: "Stale WAL recovery test",
+		Source:  "test",
+	}
+	if err := store.Store(ctx, mem); err != nil {
+		t.Fatalf("Store() failed: %v", err)
+	}
+	if err := store.Close(); err != nil {
+		t.Fatalf("Close() failed: %v", err)
+	}
+
+	// Simulate a crash by writing garbage to -shm (as if process died mid-write).
+	shmPath := dbPath + "-shm"
+	if err := os.WriteFile(shmPath, []byte("garbage-shm-data-from-crash"), 0644); err != nil {
+		t.Fatalf("failed to write fake -shm: %v", err)
+	}
+
+	// Reopen — should succeed (self-heal or open normally despite stale -shm).
+	store2, err := NewMemoryStore(dbPath)
+	if err != nil {
+		t.Fatalf("NewMemoryStore() after stale WAL should succeed, got: %v", err)
+	}
+	defer store2.Close()
+
+	// Verify data is intact.
+	got, err := store2.Get(ctx, "mem:test:stale-wal")
+	if err != nil {
+		t.Fatalf("Get() after recovery failed: %v", err)
+	}
+	if got.Content != "Stale WAL recovery test" {
+		t.Errorf("Content after recovery: got %q, want %q", got.Content, "Stale WAL recovery test")
 	}
 }

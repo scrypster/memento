@@ -6,6 +6,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/url"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -37,9 +41,42 @@ type MemoryStore struct {
 	db *sql.DB
 }
 
-// NewMemoryStore creates a new SQLite memory store.
-// The dsn parameter is the SQLite connection string (e.g., ":memory:" or "file:path/to/db.sqlite").
+// NewMemoryStore creates a new SQLite memory store with WAL self-healing.
+// If the initial open fails due to stale WAL files (left behind by a crashed
+// process), it verifies no other process holds them and retries once after
+// removing the stale -shm/-wal files.
 func NewMemoryStore(dsn string) (*MemoryStore, error) {
+	store, err := openMemoryStore(dsn)
+	if err == nil {
+		return store, nil
+	}
+
+	if !isRecoverableWALError(err) {
+		return nil, err
+	}
+
+	dbPath := dbPathFromDSN(dsn)
+	if dbPath == "" || dbPath == ":memory:" {
+		return nil, err
+	}
+
+	if !isWALStale(dbPath) {
+		return nil, err
+	}
+
+	removeStaleWAL(dbPath)
+
+	store, retryErr := openMemoryStore(dsn)
+	if retryErr != nil {
+		return nil, fmt.Errorf("failed after WAL recovery: %w (original: %v)", retryErr, err)
+	}
+
+	log.Printf("sqlite: recovered from stale WAL files for %s", dbPath)
+	return store, nil
+}
+
+// openMemoryStore opens a SQLite database, configures WAL mode, and creates the schema.
+func openMemoryStore(dsn string) (*MemoryStore, error) {
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
@@ -1003,12 +1040,20 @@ func (s *MemoryStore) UpdateDecayScores(ctx context.Context) (int, error) {
 	return int(n), nil
 }
 
-// Close releases any resources held by the store.
+// Close flushes the WAL into the main database file and releases resources.
+// The TRUNCATE checkpoint removes the -shm and -wal files so that other
+// processes (e.g., memento-mcp after memento-web exits) can open the database
+// without encountering stale WAL state.
 func (s *MemoryStore) Close() error {
-	if s.db != nil {
-		return s.db.Close()
+	if s.db == nil {
+		return nil
 	}
-	return nil
+
+	if _, err := s.db.Exec("PRAGMA wal_checkpoint(TRUNCATE)"); err != nil {
+		log.Printf("sqlite: WAL checkpoint on close failed (non-fatal): %v", err)
+	}
+
+	return s.db.Close()
 }
 
 // GetRelatedMemories returns the IDs of memories that share at least one
@@ -1332,4 +1377,87 @@ func nullableString(s string) sql.NullString {
 		return sql.NullString{Valid: false}
 	}
 	return sql.NullString{String: s, Valid: true}
+}
+
+// dbPathFromDSN extracts the filesystem path from a SQLite DSN.
+// Handles bare paths ("/path/to/db.sqlite") and file: URIs ("file:/path/to/db.sqlite?mode=rwc").
+// Returns empty string for in-memory databases or unparseable DSNs.
+func dbPathFromDSN(dsn string) string {
+	if dsn == ":memory:" || dsn == "" {
+		return ""
+	}
+
+	if strings.HasPrefix(dsn, "file:") {
+		u, err := url.Parse(dsn)
+		if err != nil {
+			return ""
+		}
+		path := u.Path
+		if path == "" {
+			path = u.Opaque
+		}
+		if path == ":memory:" || path == "" {
+			return ""
+		}
+		return path
+	}
+
+	return dsn
+}
+
+// isRecoverableWALError returns true if the error matches patterns caused by
+// stale WAL files left behind after a crash (SIGKILL, OOM, etc.).
+func isRecoverableWALError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "disk I/O error") ||
+		strings.Contains(msg, "database is locked")
+}
+
+// isWALStale checks whether -shm/-wal files exist for the given database path
+// AND no other process currently holds them open (via lsof).
+// Returns false if lsof is unavailable (conservative: no deletion).
+func isWALStale(dbPath string) bool {
+	shmPath := dbPath + "-shm"
+	walPath := dbPath + "-wal"
+
+	if !fileExists(shmPath) && !fileExists(walPath) {
+		return false
+	}
+
+	// Check if any process has the database or WAL files open.
+	lsofPath, err := exec.LookPath("lsof")
+	if err != nil {
+		// lsof not available (e.g., Alpine Docker) — conservative fallback.
+		return false
+	}
+
+	// Check the main db file, -shm, and -wal in a single lsof invocation.
+	cmd := exec.Command(lsofPath, "-t", dbPath, shmPath, walPath)
+	output, err := cmd.Output()
+	if err != nil {
+		// lsof returns exit code 1 when no files are open — that means stale.
+		return true
+	}
+
+	// If lsof produced output, some process has these files open — not stale.
+	return strings.TrimSpace(string(output)) == ""
+}
+
+// removeStaleWAL removes -shm and -wal files for the given database path.
+func removeStaleWAL(dbPath string) {
+	for _, suffix := range []string{"-shm", "-wal"} {
+		path := dbPath + suffix
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			log.Printf("sqlite: failed to remove stale %s: %v", path, err)
+		}
+	}
+}
+
+// fileExists returns true if the path exists on disk.
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }

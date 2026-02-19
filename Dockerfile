@@ -1,4 +1,22 @@
-# ---- Build stage ----
+# ---- CSS build stage ----
+FROM node:20-alpine AS css-builder
+WORKDIR /app
+COPY package.json ./
+RUN npm install --no-audit --no-fund
+COPY web/static/css/ web/static/css/
+COPY web/templates/ web/templates/
+COPY web/static/js/ web/static/js/
+COPY tailwind.config.js postcss.config.js vite.config.js ./
+RUN npx vite build
+
+# ---- Vendor JS download stage ----
+FROM alpine:3.19 AS vendor-builder
+RUN apk add --no-cache curl bash
+WORKDIR /app
+COPY scripts/download-vendor-assets.sh scripts/
+RUN chmod +x scripts/download-vendor-assets.sh && ./scripts/download-vendor-assets.sh
+
+# ---- Go build stage ----
 FROM golang:1.24-alpine AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
@@ -17,6 +35,8 @@ COPY --from=builder /app/memento-web .
 COPY --from=builder /app/memento-mcp .
 COPY --from=builder /app/memento-setup .
 COPY web/ web/
+COPY --from=css-builder /app/web/static/dist/ web/static/dist/
+COPY --from=vendor-builder /app/web/static/vendor/ web/static/vendor/
 COPY config/ config/
 COPY scripts/docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh

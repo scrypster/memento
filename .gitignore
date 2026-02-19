@@ -45,15 +45,10 @@ Thumbs.db
 node_modules/
 package-lock.json
 
-# Web UI build tooling (Tailwind)
-tailwind.config.js
-postcss.config.js
-vite.config.js
-package.json
-
 # Web UI - Generated assets (keep .gitkeep files)
 web/static/vendor/*.js
 !web/static/vendor/.gitkeep
+web/static/dist/
 web/static/css/tailwind.min.css
 web/static/css/input.css
 !web/static/css/.gitkeep

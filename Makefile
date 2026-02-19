@@ -20,7 +20,9 @@ help:
 	@echo "  make build-all      - Build all binaries (web, mcp, setup)"
 	@echo "  make build-backup   - Build backup service binary"
 	@echo "  make build-setup    - Build the setup wizard binary"
-	@echo "  make vendor-assets  - Download vendor assets for Web UI"
+	@echo "  make vendor-assets  - Download vendor JS libraries"
+	@echo "  make assets         - Build CSS (npm install + vite build)"
+	@echo "  make assets-dev     - Watch mode CSS build (vite watch)"
 	@echo ""
 	@echo "Testing Commands:"
 	@echo "  make test                - Run all tests"
@@ -68,17 +70,29 @@ setup: ## Run the interactive setup wizard
 build-setup: ## Build the setup binary
 	go build -o memento-setup ./cmd/memento-setup/
 
-# Build all binaries
-build-all: ## Build all binaries
+# Build all binaries (depends on web assets)
+build-all: vendor-assets assets ## Build all binaries
 	go build -o memento-web ./cmd/memento-web/
 	go build -o memento-mcp ./cmd/memento-mcp/
 	go build -o memento-setup ./cmd/memento-setup/
 
-# Download vendor assets for Web UI
+# Download vendor JS libraries
 .PHONY: vendor-assets
 vendor-assets:
-	@echo "Downloading vendor assets..."
+	@echo "Downloading vendor JS libraries..."
 	@./scripts/download-vendor-assets.sh
+
+# Build CSS via Vite + Tailwind
+.PHONY: assets assets-dev
+assets:
+	@echo "Building CSS..."
+	@npm install --no-audit --no-fund
+	@npx vite build
+
+assets-dev:
+	@echo "Starting CSS watch mode..."
+	@npm install --no-audit --no-fund
+	@npx vite build --watch
 
 # Start services
 up:

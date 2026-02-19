@@ -273,10 +273,32 @@ if [ "$CHECKS_PASSED" -lt 3 ]; then
     exit 1
 fi
 
+# --- Check Node.js ---
+CHECKS_TOTAL=$((CHECKS_TOTAL + 1))
+step "Checking for Node.js..."
+if ! command -v node &>/dev/null; then
+    fail "Node.js is not installed (needed for CSS build)."
+    echo "    Install Node.js 18+: https://nodejs.org/"
+else
+    NODE_VERSION=$(node --version)
+    info "Node.js found: $NODE_VERSION"
+    CHECKS_PASSED=$((CHECKS_PASSED + 1))
+fi
+
 # --- Build ---
 echo ""
 header "Building Memento..."
 echo ""
+
+step "Downloading vendor JS libraries..."
+chmod +x ./scripts/download-vendor-assets.sh
+./scripts/download-vendor-assets.sh
+info "Vendor assets downloaded"
+
+step "Building CSS (Vite + Tailwind)..."
+npm install --no-audit --no-fund
+npx vite build
+info "CSS built"
 
 step "Building memento-web (dashboard + API)..."
 go build -o memento-web ./cmd/memento-web/

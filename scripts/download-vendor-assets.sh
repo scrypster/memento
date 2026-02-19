@@ -5,66 +5,68 @@ echo "Downloading vendor assets for Memento Web UI..."
 
 # Create directories
 mkdir -p web/static/vendor
-mkdir -p web/static/css
-mkdir -p web/static/js
 
-# Download Alpine.js 3.14.9
-echo "Downloading Alpine.js 3.14.9..."
-curl -sL -o web/static/vendor/alpine-3.14.9.min.js \
-  https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js
+VENDOR_DIR="web/static/vendor"
 
-# Verify file was downloaded
-if [ ! -f web/static/vendor/alpine-3.14.9.min.js ]; then
-  echo "ERROR: Failed to download Alpine.js"
-  exit 1
-fi
+# Helper: download and verify a vendor file
+download_vendor() {
+  local name="$1"
+  local url="$2"
+  local file="$3"
+  local min_size="${4:-1000}"
 
-FILE_SIZE=$(wc -c < web/static/vendor/alpine-3.14.9.min.js)
-if [ "$FILE_SIZE" -lt 10000 ]; then
-  echo "ERROR: Alpine.js file is too small ($FILE_SIZE bytes), download may have failed"
-  exit 1
-fi
+  echo "Downloading $name..."
+  curl -sL -o "$VENDOR_DIR/$file" "$url"
 
-echo "✓ Alpine.js downloaded successfully ($FILE_SIZE bytes)"
-
-# Build Tailwind CSS (requires Node.js)
-if command -v npx &> /dev/null; then
-  echo "Building Tailwind CSS..."
-
-  # Create minimal tailwind.config.js if it doesn't exist
-  if [ ! -f tailwind.config.js ]; then
-    cat > tailwind.config.js << 'EOF'
-module.exports = {
-  content: ["./web/templates/**/*.html", "./web/static/js/**/*.js"],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
-EOF
-  fi
-
-  # Create minimal input CSS
-  cat > web/static/css/input.css << 'EOF'
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-EOF
-
-  npx tailwindcss -i web/static/css/input.css -o web/static/css/tailwind.min.css --minify
-
-  if [ -f web/static/css/tailwind.min.css ]; then
-    echo "✓ Tailwind CSS built successfully"
-  else
-    echo "ERROR: Failed to build Tailwind CSS"
+  if [ ! -f "$VENDOR_DIR/$file" ]; then
+    echo "ERROR: Failed to download $name"
     exit 1
   fi
-else
-  echo "WARNING: npx not found, skipping Tailwind CSS build"
-  echo "Install Node.js to enable Tailwind CSS generation"
-fi
+
+  FILE_SIZE=$(wc -c < "$VENDOR_DIR/$file")
+  if [ "$FILE_SIZE" -lt "$min_size" ]; then
+    echo "ERROR: $name file is too small ($FILE_SIZE bytes), download may have failed"
+    exit 1
+  fi
+
+  echo "✓ $name downloaded ($FILE_SIZE bytes)"
+}
+
+# Alpine.js 3.14.9
+download_vendor "Alpine.js 3.14.9" \
+  "https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js" \
+  "alpine-3.14.9.min.js" 10000
+
+# Cytoscape.js 3.30.4
+download_vendor "Cytoscape.js 3.30.4" \
+  "https://cdn.jsdelivr.net/npm/cytoscape@3.30.4/dist/cytoscape.min.js" \
+  "cytoscape-3.30.4.min.js" 100000
+
+# layout-base 2.0.1 (dependency for cose-base / fcose)
+download_vendor "layout-base 2.0.1" \
+  "https://unpkg.com/layout-base@2.0.1/layout-base.js" \
+  "layout-base-2.0.1.js" 1000
+
+# cose-base 2.2.0 (dependency for fcose)
+download_vendor "cose-base 2.2.0" \
+  "https://unpkg.com/cose-base@2.2.0/cose-base.js" \
+  "cose-base-2.2.0.js" 1000
+
+# cytoscape-fcose 2.2.0
+download_vendor "cytoscape-fcose 2.2.0" \
+  "https://unpkg.com/cytoscape-fcose@2.2.0/cytoscape-fcose.js" \
+  "cytoscape-fcose-2.2.0.js" 1000
+
+# Chart.js 4.4.0
+download_vendor "Chart.js 4.4.0" \
+  "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" \
+  "chart-4.4.0.min.js" 50000
 
 echo ""
-echo "Vendor assets ready!"
-echo "- Alpine.js: web/static/vendor/alpine-3.14.9.min.js"
-echo "- Tailwind CSS: web/static/css/tailwind.min.css"
+echo "All vendor assets ready!"
+echo "  - Alpine.js:        $VENDOR_DIR/alpine-3.14.9.min.js"
+echo "  - Cytoscape.js:     $VENDOR_DIR/cytoscape-3.30.4.min.js"
+echo "  - layout-base:      $VENDOR_DIR/layout-base-2.0.1.js"
+echo "  - cose-base:        $VENDOR_DIR/cose-base-2.2.0.js"
+echo "  - cytoscape-fcose:  $VENDOR_DIR/cytoscape-fcose-2.2.0.js"
+echo "  - Chart.js:         $VENDOR_DIR/chart-4.4.0.min.js"
