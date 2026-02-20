@@ -111,20 +111,17 @@ if [ "$MODE" = "docker" ]; then
 
     # --- Check disk space ---
     step "Checking available disk space..."
-    if [ "$PLATFORM" = "mac" ]; then
-        AVAIL_GB=$(df -g / | tail -1 | awk '{print $4}')
-    else
-        AVAIL_GB=$(df -BG / | tail -1 | awk '{print $4}' | tr -d 'G')
-    fi
+    AVAIL_KB=$(df -k / 2>/dev/null | awk 'NR==2 {print $4}')
+    AVAIL_GB=$(( ${AVAIL_KB:-0} / 1024 / 1024 ))
     if [ "$AVAIL_GB" -lt 8 ] 2>/dev/null; then
-        warn "Low disk space (${AVAIL_GB}GB free). Ollama models need ~5GB."
-        echo "    Continue anyway? [y/N] "
+        warn "Low disk space (~${AVAIL_GB}GB free). Ollama models need ~5GB."
+        printf "    Continue anyway? [y/N]: "
         read -r cont
         if [ "$cont" != "y" ] && [ "$cont" != "Y" ]; then
             exit 1
         fi
     else
-        info "Disk space OK (${AVAIL_GB}GB available)"
+        info "Disk space OK (~${AVAIL_GB}GB available)"
     fi
 
     # --- Launch ---
@@ -162,15 +159,24 @@ if [ "$MODE" = "docker" ]; then
     fi
 
     echo ""
-    header "You're all set!"
+    echo -e "${GREEN}╔══════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}║  ✓ Memento is running!                                       ║${NC}"
+    echo -e "${GREEN}╚══════════════════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -e "  ${BOLD}Web UI:${NC}           http://localhost:6363"
-    echo -e "  ${BOLD}View logs:${NC}        $COMPOSE_CMD logs -f memento"
-    echo -e "  ${BOLD}Stop:${NC}             $COMPOSE_CMD down"
-    echo -e "  ${BOLD}Restart:${NC}          $COMPOSE_CMD restart"
+    echo -e "  ${BOLD}Web UI:${NC}    http://localhost:6363"
+    echo -e "  ${BOLD}Logs:${NC}      $COMPOSE_CMD logs -f memento"
+    echo -e "  ${BOLD}Stop:${NC}      $COMPOSE_CMD down"
     echo ""
-    echo -e "  ${DIM}Next: Open the web UI and go to the Integrations page${NC}"
-    echo -e "  ${DIM}to connect Claude Code, Cursor, Windsurf, or any MCP client.${NC}"
+    echo -e "  ${BOLD}Connect Claude Code — run this command:${NC}"
+    echo ""
+    echo -e "  ${CYAN}  claude mcp add memento -- memento-mcp${NC}"
+    echo ""
+    echo -e "  ${DIM}(The web UI at http://localhost:6363/integrations generates${NC}"
+    echo -e "  ${DIM}ready-to-paste configs for Claude Desktop, Cursor, and Windsurf.)${NC}"
+    echo ""
+    echo -e "  ${BOLD}Your first memory — try this in Claude:${NC}"
+    echo -e "  ${DIM}  \"We're using PostgreSQL — chose it for pgvector support.\"${NC}"
+    echo -e "  ${DIM}  Then ask: \"What database are we using?\"${NC}"
     echo ""
 
     exit 0
@@ -182,6 +188,7 @@ fi
 header "Local Setup"
 echo ""
 CHECKS_PASSED=0
+CHECKS_FAILED=0
 CHECKS_TOTAL=0
 
 # --- Check Go ---
@@ -190,10 +197,27 @@ step "Checking for Go..."
 if ! command -v go &>/dev/null; then
     fail "Go is not installed."
     echo "    Install Go 1.23+: https://go.dev/dl/"
+    CHECKS_FAILED=$((CHECKS_FAILED + 1))
 else
     GO_VERSION=$(go version | grep -oE 'go[0-9]+\.[0-9]+' | head -1)
     GO_MAJOR=$(echo "$GO_VERSION" | grep -oE '[0-9]+\.[0-9]+')
     info "Go found: $GO_VERSION"
+    CHECKS_PASSED=$((CHECKS_PASSED + 1))
+fi
+
+# --- Check Node.js ---
+CHECKS_TOTAL=$((CHECKS_TOTAL + 1))
+step "Checking for Node.js..."
+if ! command -v node &>/dev/null; then
+    fail "Node.js is not installed (needed for CSS build)."
+    echo "    Install Node.js 18+: https://nodejs.org/"
+    if [ "$PLATFORM" = "mac" ]; then
+        echo "    Or: brew install node"
+    fi
+    CHECKS_FAILED=$((CHECKS_FAILED + 1))
+else
+    NODE_VERSION=$(node --version)
+    info "Node.js found: $NODE_VERSION"
     CHECKS_PASSED=$((CHECKS_PASSED + 1))
 fi
 
@@ -210,6 +234,7 @@ if ! command -v ollama &>/dev/null; then
     else
         echo "    Install: https://ollama.com/download"
     fi
+    CHECKS_FAILED=$((CHECKS_FAILED + 1))
 else
     info "Ollama found: $(ollama --version 2>/dev/null || echo 'installed')"
     CHECKS_PASSED=$((CHECKS_PASSED + 1))
@@ -276,22 +301,10 @@ fi
 echo ""
 header "Preflight Check: $CHECKS_PASSED/$CHECKS_TOTAL passed"
 
-if [ "$CHECKS_PASSED" -lt 3 ]; then
+if [ "$CHECKS_FAILED" -gt 0 ]; then
     echo ""
-    fail "Required dependencies are missing. Please install them and try again."
+    fail "Fix the $CHECKS_FAILED missing dependency/dependencies above and re-run this script."
     exit 1
-fi
-
-# --- Check Node.js ---
-CHECKS_TOTAL=$((CHECKS_TOTAL + 1))
-step "Checking for Node.js..."
-if ! command -v node &>/dev/null; then
-    fail "Node.js is not installed (needed for CSS build)."
-    echo "    Install Node.js 18+: https://nodejs.org/"
-else
-    NODE_VERSION=$(node --version)
-    info "Node.js found: $NODE_VERSION"
-    CHECKS_PASSED=$((CHECKS_PASSED + 1))
 fi
 
 # --- Build ---
@@ -325,20 +338,24 @@ info "memento-setup built"
 mkdir -p data
 
 # --- Start ---
+BINARY_PATH="$(pwd)/memento-mcp"
+DATA_PATH="$(pwd)/data"
+
 echo ""
-header "Ready to launch!"
+echo -e "${GREEN}╔══════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║  ✓ Memento is built and ready!                               ║${NC}"
+echo -e "${GREEN}╚══════════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "  ${BOLD}Start the web dashboard:${NC}"
-echo "    ./memento-web"
+echo -e "  ${BOLD}Connect Claude Code — copy and run this exact command:${NC}"
 echo ""
-echo -e "  ${BOLD}Run the interactive setup wizard:${NC}"
-echo "    ./memento-setup"
+echo -e "  ${CYAN}  claude mcp add memento -- ${BINARY_PATH} -e MEMENTO_DATA_PATH=${DATA_PATH}${NC}"
 echo ""
-echo -e "  ${BOLD}Register MCP with Claude Code:${NC}"
-echo "    claude mcp add memento -- $(pwd)/memento-mcp -e MEMENTO_DATA_PATH=$(pwd)/data"
+echo -e "  ${DIM}(The web UI at http://localhost:6363/integrations generates${NC}"
+echo -e "  ${DIM}ready-to-paste configs for Claude Desktop, Cursor, and Windsurf.)${NC}"
 echo ""
-echo -e "  ${DIM}The web UI at http://localhost:6363 has copy-paste configs${NC}"
-echo -e "  ${DIM}for Claude Desktop, Cursor, Windsurf, and other MCP clients.${NC}"
+echo -e "  ${BOLD}Your first memory — try this in Claude after connecting:${NC}"
+echo -e "  ${DIM}  \"We're using PostgreSQL — chose it for pgvector support.\"${NC}"
+echo -e "  ${DIM}  Then ask: \"What database are we using?\"${NC}"
 echo ""
 
 # --- Offer to start ---

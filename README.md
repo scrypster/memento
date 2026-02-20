@@ -22,46 +22,31 @@ It runs on your machine, connects to any MCP-compatible AI tool, and builds a pe
 
 ## Quick Start
 
+**Prerequisites:** [Docker](https://docker.com) — or — [Go 1.23+](https://go.dev) + [Node.js 18+](https://nodejs.org) + [Ollama](https://ollama.ai)
+
 ```bash
 git clone https://github.com/scrypster/memento.git
 cd memento
 ./launch.sh
 ```
 
-The launch script asks **Docker or Local?** and handles everything:
+The script detects your environment, runs preflight checks, builds everything, and **prints the exact command to connect your AI tool at the end.** First run downloads Ollama models (~5 GB). After that, starts in seconds.
 
-- **Docker** — checks Docker/Compose, builds images, starts containers, waits for health
-- **Local** — checks Go, Ollama, required models, builds binaries, offers to start
+### Your first memory
 
-> First run downloads Ollama models `qwen2.5:7b` + `nomic-embed-text` (~5 GB). After that, starts in seconds with no external calls ever.
-
-### Manual: Docker
-
-```bash
-docker compose up -d
-```
-
-Open **http://localhost:6363** and follow the setup guide.
-
-### Manual: Go binary
-
-```bash
-go build -o memento-web ./cmd/memento-web/ && ./memento-web
-```
-
----
-
-## First 60 Seconds
-
-Once running, connect your AI tool and try this:
+Once connected, try this in Claude:
 
 ```
-You: "We're using PostgreSQL for the main database — chose it for pgvector support."
-
-→ Memento stores the decision, extracts entities (PostgreSQL, pgvector),
-  maps the relationship (PostgreSQL → depends_on → pgvector), and indexes
-  everything for search. Returns in <10ms.
+"We're using PostgreSQL — chose it for pgvector support."
 ```
+
+Close the tab. Open a new session. Ask:
+
+```
+"What database are we using?"
+```
+
+Your AI already knows. No re-explaining. No context window tricks.
 
 Close the tab. Open a new session.
 
