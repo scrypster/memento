@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -438,6 +439,531 @@ func TestMCPServer_ErrorHandling(t *testing.T) {
 				t.Errorf("Expected error: %v, got: %v", tt.wantErr, err)
 			}
 		})
+	}
+}
+
+// TestUpdateMemory_Success verifies that UpdateMemory can successfully update memory content
+func TestUpdateMemory_Success(t *testing.T) {
+	ctx := context.Background()
+	store := setupTestStore(t)
+	defer func() { _ = store.Close() }()
+
+	server := mcp.NewServer(store)
+
+	// Store a memory first
+	memory := &types.Memory{
+		ID:        "mem:test:update",
+		Content:   "Original content",
+		Source:    "test",
+		Domain:    "testing",
+		Status:    types.StatusEnriched,
+		Timestamp: time.Now(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := store.Store(ctx, memory); err != nil {
+		t.Fatalf("Failed to store test memory: %v", err)
+	}
+
+	// Update the memory
+	args := mcp.UpdateMemoryArgs{
+		ID:      memory.ID,
+		Content: "Updated content",
+	}
+
+	result, err := server.UpdateMemory(ctx, args)
+	if err != nil {
+		t.Fatalf("UpdateMemory failed: %v", err)
+	}
+
+	if !result.Updated {
+		t.Error("Expected Updated to be true")
+	}
+
+	if result.ID != memory.ID {
+		t.Errorf("Expected ID '%s', got '%s'", memory.ID, result.ID)
+	}
+
+	if result.Message == "" {
+		t.Error("Expected non-empty message")
+	}
+
+	// Verify the update by recalling the memory
+	recallArgs := mcp.RecallMemoryArgs{
+		ID: memory.ID,
+	}
+
+	recallResult, err := server.RecallMemory(ctx, recallArgs)
+	if err != nil {
+		t.Fatalf("RecallMemory failed: %v", err)
+	}
+
+	if !recallResult.Found {
+		t.Fatal("Expected memory to be found after update")
+	}
+
+	if recallResult.Memory.Content != "Updated content" {
+		t.Errorf("Expected content 'Updated content', got '%s'", recallResult.Memory.Content)
+	}
+}
+
+// TestUpdateMemory_NotFound verifies error handling when updating non-existent memory
+func TestUpdateMemory_NotFound(t *testing.T) {
+	ctx := context.Background()
+	store := setupTestStore(t)
+	defer func() { _ = store.Close() }()
+
+	server := mcp.NewServer(store)
+
+	args := mcp.UpdateMemoryArgs{
+		ID:      "mem:test:nonexistent",
+		Content: "Updated content",
+	}
+
+	result, err := server.UpdateMemory(ctx, args)
+	if err == nil {
+		t.Fatal("Expected error for non-existent memory")
+	}
+
+	if result != nil {
+		t.Error("Expected nil result on error")
+	}
+
+	// Verify error message contains "not found"
+	if !strings.Contains(err.Error(), "not found") {
+		t.Errorf("Expected 'not found' in error message, got: %v", err)
+	}
+}
+
+// TestUpdateMemory_EmptyContent verifies error handling when all update fields are empty
+func TestUpdateMemory_EmptyContent(t *testing.T) {
+	ctx := context.Background()
+	store := setupTestStore(t)
+	defer func() { _ = store.Close() }()
+
+	server := mcp.NewServer(store)
+
+	// Store a memory first
+	memory := &types.Memory{
+		ID:        "mem:test:empty",
+		Content:   "Original content",
+		Source:    "test",
+		Domain:    "testing",
+		Status:    types.StatusEnriched,
+		Timestamp: time.Now(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := store.Store(ctx, memory); err != nil {
+		t.Fatalf("Failed to store test memory: %v", err)
+	}
+
+	// Try to update with empty content, tags, and metadata
+	args := mcp.UpdateMemoryArgs{
+		ID:       memory.ID,
+		Content:  "",
+		Tags:     nil,
+		Metadata: nil,
+	}
+
+	result, err := server.UpdateMemory(ctx, args)
+	if err == nil {
+		t.Fatal("Expected error when all fields are empty")
+	}
+
+	if result != nil {
+		t.Error("Expected nil result on error")
+	}
+}
+
+// TestUpdateMemory_UpdateTags verifies that tags can be updated independently
+func TestUpdateMemory_UpdateTags(t *testing.T) {
+	ctx := context.Background()
+	store := setupTestStore(t)
+	defer func() { _ = store.Close() }()
+
+	server := mcp.NewServer(store)
+
+	// Store a memory first
+	memory := &types.Memory{
+		ID:        "mem:test:tags",
+		Content:   "Content with tags",
+		Source:    "test",
+		Domain:    "testing",
+		Tags:      []string{"old-tag"},
+		Status:    types.StatusEnriched,
+		Timestamp: time.Now(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := store.Store(ctx, memory); err != nil {
+		t.Fatalf("Failed to store test memory: %v", err)
+	}
+
+	// Update only tags
+	args := mcp.UpdateMemoryArgs{
+		ID:   memory.ID,
+		Tags: []string{"new-tag", "another-tag"},
+	}
+
+	result, err := server.UpdateMemory(ctx, args)
+	if err != nil {
+		t.Fatalf("UpdateMemory failed: %v", err)
+	}
+
+	if !result.Updated {
+		t.Error("Expected Updated to be true")
+	}
+
+	// Verify the update
+	recallArgs := mcp.RecallMemoryArgs{
+		ID: memory.ID,
+	}
+
+	recallResult, err := server.RecallMemory(ctx, recallArgs)
+	if err != nil {
+		t.Fatalf("RecallMemory failed: %v", err)
+	}
+
+	if len(recallResult.Memory.Tags) != 2 {
+		t.Errorf("Expected 2 tags, got %d", len(recallResult.Memory.Tags))
+	}
+
+	// Content should remain unchanged
+	if recallResult.Memory.Content != "Content with tags" {
+		t.Errorf("Expected content unchanged, got '%s'", recallResult.Memory.Content)
+	}
+}
+
+// TestUpdateMemory_UpdateMetadata verifies that metadata can be updated independently
+func TestUpdateMemory_UpdateMetadata(t *testing.T) {
+	ctx := context.Background()
+	store := setupTestStore(t)
+	defer func() { _ = store.Close() }()
+
+	server := mcp.NewServer(store)
+
+	// Store a memory first
+	memory := &types.Memory{
+		ID:        "mem:test:metadata",
+		Content:   "Content with metadata",
+		Source:    "test",
+		Domain:    "testing",
+		Metadata:  map[string]interface{}{"old_key": "old_value"},
+		Status:    types.StatusEnriched,
+		Timestamp: time.Now(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := store.Store(ctx, memory); err != nil {
+		t.Fatalf("Failed to store test memory: %v", err)
+	}
+
+	// Update only metadata
+	args := mcp.UpdateMemoryArgs{
+		ID: memory.ID,
+		Metadata: map[string]interface{}{
+			"new_key": "new_value",
+		},
+	}
+
+	result, err := server.UpdateMemory(ctx, args)
+	if err != nil {
+		t.Fatalf("UpdateMemory failed: %v", err)
+	}
+
+	if !result.Updated {
+		t.Error("Expected Updated to be true")
+	}
+
+	// Verify the update
+	recallArgs := mcp.RecallMemoryArgs{
+		ID: memory.ID,
+	}
+
+	recallResult, err := server.RecallMemory(ctx, recallArgs)
+	if err != nil {
+		t.Fatalf("RecallMemory failed: %v", err)
+	}
+
+	if recallResult.Memory.Metadata["new_key"] != "new_value" {
+		t.Errorf("Expected metadata new_key='new_value', got '%v'", recallResult.Memory.Metadata["new_key"])
+	}
+
+	// Content should remain unchanged
+	if recallResult.Memory.Content != "Content with metadata" {
+		t.Errorf("Expected content unchanged, got '%s'", recallResult.Memory.Content)
+	}
+}
+
+// TestConsolidateMemories_ByQuery verifies consolidation using search query
+func TestConsolidateMemories_ByQuery(t *testing.T) {
+	ctx := context.Background()
+	store := setupTestStore(t)
+	defer func() { _ = store.Close() }()
+
+	server := mcp.NewServer(store)
+
+	// Store several related memories
+	memories := []*types.Memory{
+		{
+			ID:        "mem:test:consol1",
+			Content:   "Go programming language features",
+			Source:    "test",
+			Domain:    "testing",
+			Tags:      []string{"programming"},
+			Status:    types.StatusEnriched,
+			Timestamp: time.Now(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        "mem:test:consol2",
+			Content:   "Go concurrency with goroutines",
+			Source:    "test",
+			Domain:    "testing",
+			Tags:      []string{"programming"},
+			Status:    types.StatusEnriched,
+			Timestamp: time.Now(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        "mem:test:consol3",
+			Content:   "Go error handling best practices",
+			Source:    "test",
+			Domain:    "testing",
+			Tags:      []string{"programming"},
+			Status:    types.StatusEnriched,
+			Timestamp: time.Now(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+	}
+
+	for _, mem := range memories {
+		if err := store.Store(ctx, mem); err != nil {
+			t.Fatalf("Failed to store test memory: %v", err)
+		}
+	}
+
+	// Consolidate using query
+	args := mcp.ConsolidateMemoriesArgs{
+		Query: "Go programming",
+		Title: "Go Programming Summary",
+		Limit: 10,
+	}
+
+	result, err := server.ConsolidateMemories(ctx, args)
+	if err != nil {
+		t.Fatalf("ConsolidateMemories failed: %v", err)
+	}
+
+	if result.NewID == "" {
+		t.Error("Expected non-empty NewID")
+	}
+
+	if result.Content == "" {
+		t.Error("Expected non-empty consolidated content")
+	}
+
+	if len(result.ConsolidatedIDs) < 2 {
+		t.Errorf("Expected at least 2 consolidated IDs, got %d", len(result.ConsolidatedIDs))
+	}
+
+	if result.Message == "" {
+		t.Error("Expected non-empty message")
+	}
+
+	// Verify the consolidated memory exists
+	recallArgs := mcp.RecallMemoryArgs{
+		ID: result.NewID,
+	}
+
+	recallResult, err := server.RecallMemory(ctx, recallArgs)
+	if err != nil {
+		t.Fatalf("RecallMemory for consolidated memory failed: %v", err)
+	}
+
+	if !recallResult.Found {
+		t.Error("Expected consolidated memory to be found")
+	}
+}
+
+// TestConsolidateMemories_ByExplicitIDs verifies consolidation using explicit IDs
+func TestConsolidateMemories_ByExplicitIDs(t *testing.T) {
+	ctx := context.Background()
+	store := setupTestStore(t)
+	defer func() { _ = store.Close() }()
+
+	server := mcp.NewServer(store)
+
+	// Store memories
+	memories := []*types.Memory{
+		{
+			ID:        "mem:test:exp1",
+			Content:   "Memory one for consolidation",
+			Source:    "test",
+			Domain:    "testing",
+			Status:    types.StatusEnriched,
+			Timestamp: time.Now(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        "mem:test:exp2",
+			Content:   "Memory two for consolidation",
+			Source:    "test",
+			Domain:    "testing",
+			Status:    types.StatusEnriched,
+			Timestamp: time.Now(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+	}
+
+	for _, mem := range memories {
+		if err := store.Store(ctx, mem); err != nil {
+			t.Fatalf("Failed to store test memory: %v", err)
+		}
+	}
+
+	// Consolidate using explicit IDs
+	args := mcp.ConsolidateMemoriesArgs{
+		IDs:   []string{memories[0].ID, memories[1].ID},
+		Title: "Consolidated Result",
+	}
+
+	result, err := server.ConsolidateMemories(ctx, args)
+	if err != nil {
+		t.Fatalf("ConsolidateMemories failed: %v", err)
+	}
+
+	if result.NewID == "" {
+		t.Error("Expected non-empty NewID")
+	}
+
+	if len(result.ConsolidatedIDs) != 2 {
+		t.Errorf("Expected 2 consolidated IDs, got %d", len(result.ConsolidatedIDs))
+	}
+}
+
+// TestConsolidateMemories_Validation verifies error handling for invalid inputs
+func TestConsolidateMemories_Validation(t *testing.T) {
+	ctx := context.Background()
+	store := setupTestStore(t)
+	defer func() { _ = store.Close() }()
+
+	server := mcp.NewServer(store)
+
+	tests := []struct {
+		name    string
+		args    mcp.ConsolidateMemoriesArgs
+		wantErr bool
+	}{
+		{
+			name: "neither ids nor query",
+			args: mcp.ConsolidateMemoriesArgs{
+				IDs:    []string{},
+				Query:  "",
+				Limit:  5,
+			},
+			wantErr: true,
+		},
+		{
+			name: "insufficient memories",
+			args: mcp.ConsolidateMemoriesArgs{
+				IDs:   []string{"mem:test:single"},
+				Query: "",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := server.ConsolidateMemories(ctx, tt.args)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Expected error: %v, got: %v", tt.wantErr, err)
+			}
+			if !tt.wantErr && result == nil {
+				t.Error("Expected non-nil result on success")
+			}
+		})
+	}
+}
+
+// TestUpdateMemory_WithConnectionIDInMemoryID verifies that UpdateMemory routes to the correct store
+// based on the connection_id segment in the memory ID (mem:connection_id:hash format)
+func TestUpdateMemory_WithConnectionIDInMemoryID(t *testing.T) {
+	ctx := context.Background()
+
+	// Create a single store for this test (connectionManager is not available for test setup)
+	store := setupTestStore(t)
+	defer func() { _ = store.Close() }()
+
+	// Create an MCP server without connection manager (tests default behavior)
+	server := mcp.NewServer(store)
+
+	// Store a memory with a non-"general" domain in the memory ID
+	// The format is mem:domain:hash, so mem:myapp:abc123 has domain "myapp"
+	memory := &types.Memory{
+		ID:        "mem:myapp:testmemory",
+		Content:   "Memory with custom domain",
+		Source:    "test",
+		Domain:    "myapp",
+		Status:    types.StatusEnriched,
+		Timestamp: time.Now(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := store.Store(ctx, memory); err != nil {
+		t.Fatalf("Failed to store test memory: %v", err)
+	}
+
+	// Verify recall works with the custom domain ID
+	recallArgs := mcp.RecallMemoryArgs{
+		ID: memory.ID,
+	}
+
+	recallResult, err := server.RecallMemory(ctx, recallArgs)
+	if err != nil {
+		t.Fatalf("RecallMemory failed: %v", err)
+	}
+
+	if !recallResult.Found {
+		t.Error("Expected memory to be found")
+	}
+
+	// Update the memory through the MCP server
+	// When no connection manager is configured, resolveStoreForID falls back to the primary store
+	args := mcp.UpdateMemoryArgs{
+		ID:      memory.ID,
+		Content: "Updated memory with custom domain",
+	}
+
+	result, err := server.UpdateMemory(ctx, args)
+	if err != nil {
+		t.Fatalf("UpdateMemory failed: %v", err)
+	}
+
+	if !result.Updated {
+		t.Error("Expected Updated to be true")
+	}
+
+	// Verify the update was applied
+	updated, err := store.Get(ctx, memory.ID)
+	if err != nil {
+		t.Fatalf("Failed to retrieve updated memory: %v", err)
+	}
+
+	if updated.Content != "Updated memory with custom domain" {
+		t.Errorf("Expected updated content, got '%s'", updated.Content)
 	}
 }
 

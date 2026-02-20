@@ -10,6 +10,20 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: memento
+          POSTGRES_PASSWORD: memento_test
+          POSTGRES_DB: memento_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -28,6 +42,8 @@ jobs:
           go build -v ./cmd/memento-mcp/
 
       - name: Run unit tests
+        env:
+          POSTGRES_TEST_DSN: postgres://memento:memento_test@localhost:5432/memento_test?sslmode=disable
         run: go test -v -short -race -coverprofile=coverage.out ./...
 
       - name: Check coverage threshold
