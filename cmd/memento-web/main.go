@@ -11,6 +11,7 @@ import (
 
 	"github.com/scrypster/memento/internal/config"
 	"github.com/scrypster/memento/internal/engine"
+	"github.com/scrypster/memento/internal/notify"
 	"github.com/scrypster/memento/internal/server"
 	"github.com/scrypster/memento/internal/storage"
 	"github.com/scrypster/memento/internal/storage/sqlite"
@@ -61,8 +62,34 @@ func main() {
 	}
 
 	// Start server (pass memory engine for queue size reporting and optional config path)
-	addr := server.Start(ctx, cfg, store, memoryEngine, *configPath)
+	addr, wsHub := server.Start(ctx, cfg, store, memoryEngine, *configPath)
 	log.Printf("Memento Web UI running at http://%s", addr)
+
+	// Broadcast a lifecycle event over WebSocket
+	broadcastEvent := func(eventType, memoryID string) {
+		wsHub.Broadcast(map[string]interface{}{
+			"type":     eventType,
+			"memoryId": memoryID,
+		})
+	}
+
+	// Local enrichments (web's own engine)
+	memoryEngine.SetOnMemoryCreated(func(memoryID string) {
+		broadcastEvent("memory_created", memoryID)
+	})
+	memoryEngine.SetOnEnrichmentStarted(func(memoryID string) {
+		broadcastEvent("enrichment_started", memoryID)
+	})
+	memoryEngine.SetOnEnrichmentComplete(func(memoryID string) {
+		broadcastEvent("enrichment_complete", memoryID)
+	})
+
+	// Cross-process events (from memento-mcp via filesystem events)
+	eventWatcher := notify.NewEventWatcher(cfg.Storage.DataPath, broadcastEvent)
+	if err := eventWatcher.Start(); err != nil {
+		log.Printf("WARNING: cross-process notifications disabled: %v", err)
+	}
+	defer eventWatcher.Stop()
 
 	// Wait for interrupt signal
 	sigChan := make(chan os.Signal, 1)
@@ -83,5 +110,6 @@ func main() {
 // startServer is a helper that wraps server.Start for testability.
 // It accepts a storage.MemoryStore interface so tests can pass in any implementation.
 func startServer(ctx context.Context, cfg *config.Config, store storage.MemoryStore) string {
-	return server.Start(ctx, cfg, store)
+	addr, _ := server.Start(ctx, cfg, store)
+	return addr
 }

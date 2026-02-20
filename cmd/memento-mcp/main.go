@@ -21,12 +21,14 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"syscall"
 
 	"github.com/scrypster/memento/internal/api/mcp"
 	"github.com/scrypster/memento/internal/config"
 	"github.com/scrypster/memento/internal/connections"
 	"github.com/scrypster/memento/internal/engine"
+	"github.com/scrypster/memento/internal/notify"
 	"github.com/scrypster/memento/internal/storage/sqlite"
 )
 
@@ -97,13 +99,51 @@ func main() {
 
 	// Wrap the raw store in the MemoryEngine so that memories stored via MCP
 	// flow through the enrichment and decay pipeline.
-	memEngine, err := engine.NewMemoryEngine(store, engine.DefaultConfig(), cfg)
+	//
+	// Worker count is provider-aware: Ollama serializes inference requests
+	// (single model loaded at a time), so concurrent workers just queue up
+	// and risk timeouts.  Cloud APIs (OpenAI, Anthropic) handle concurrency
+	// natively, so more workers improve throughput.
+	//
+	// MEMENTO_NUM_WORKERS env var overrides auto-detection.
+	engineCfg := engine.DefaultConfig()
+	if override := os.Getenv("MEMENTO_NUM_WORKERS"); override != "" {
+		if n, err := strconv.Atoi(override); err == nil && n >= 1 {
+			engineCfg.NumWorkers = n
+			log.Printf("enrichment workers: %d (from MEMENTO_NUM_WORKERS)", n)
+		}
+	} else if cfg.LLM.LLMProvider == "ollama" {
+		engineCfg.NumWorkers = 1
+		log.Printf("enrichment workers: 1 (ollama provider — sequential to avoid contention)")
+	} else {
+		log.Printf("enrichment workers: %d (cloud provider: %s)", engineCfg.NumWorkers, cfg.LLM.LLMProvider)
+	}
+	memEngine, err := engine.NewMemoryEngine(store, engineCfg, cfg)
 	if err != nil {
 		log.Fatalf("failed to create memory engine: %v", err)
 	}
 	if err := memEngine.Start(ctx); err != nil {
 		log.Fatalf("failed to start memory engine: %v", err)
 	}
+
+	// Wire cross-process lifecycle notifications so memento-web can
+	// push live updates via WebSocket as memories progress through the pipeline.
+	eventWriter := notify.NewEventWriter(cfg.Storage.DataPath)
+	notifyEvent := func(eventType, memoryID string) {
+		if err := eventWriter.Notify(eventType, memoryID); err != nil {
+			log.Printf("notify: failed to write %s event for %s: %v", eventType, memoryID, err)
+		}
+	}
+	memEngine.SetOnMemoryCreated(func(memoryID string) {
+		notifyEvent("memory_created", memoryID)
+	})
+	memEngine.SetOnEnrichmentStarted(func(memoryID string) {
+		notifyEvent("enrichment_started", memoryID)
+	})
+	memEngine.SetOnEnrichmentComplete(func(memoryID string) {
+		notifyEvent("enrichment_complete", memoryID)
+	})
+
 	defer func() {
 		if err := memEngine.Shutdown(ctx); err != nil {
 			log.Printf("engine shutdown error: %v", err)

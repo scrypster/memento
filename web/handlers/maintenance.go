@@ -260,6 +260,70 @@ func (h *MaintenanceHandler) RunBackfill(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(resp)
 }
 
+// RetryEnrichment handles POST /api/memories/{id}/retry.
+// Resets a failed memory to pending and queues it for re-enrichment.
+func (h *MaintenanceHandler) RetryEnrichment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	memoryID := r.PathValue("id")
+	if memoryID == "" {
+		http.Error(w, `{"error":"memory ID is required"}`, http.StatusBadRequest)
+		return
+	}
+
+	// Get store for the active connection
+	connName := r.Header.Get("X-Connection")
+	if connName == "" {
+		connName = "default"
+	}
+	store, err := h.connManager.GetStore(connName)
+	if err != nil {
+		http.Error(w, `{"error":"connection not found"}`, http.StatusNotFound)
+		return
+	}
+
+	// Fetch the memory
+	mem, err := store.Get(r.Context(), memoryID)
+	if err != nil || mem == nil {
+		http.Error(w, `{"error":"memory not found"}`, http.StatusNotFound)
+		return
+	}
+
+	if mem.Status != "failed" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"id":      memoryID,
+			"queued":  false,
+			"message": "Memory is not in failed state (current: " + string(mem.Status) + ")",
+		})
+		return
+	}
+
+	// Reset status to pending
+	mem.Status = "pending"
+	if err := store.Update(r.Context(), mem); err != nil {
+		http.Error(w, `{"error":"failed to update memory status"}`, http.StatusInternalServerError)
+		return
+	}
+
+	// Queue for enrichment
+	queued := false
+	if h.engine != nil {
+		queued = h.engine.QueueEnrichmentForMemory(memoryID, mem.Content)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"id":      memoryID,
+		"queued":  queued,
+		"message": "Memory queued for enrichment retry",
+	})
+}
+
 // UnknownTypeStat is a single row from the unknown_type_stats table.
 type UnknownTypeStat struct {
 	TypeName  string `json:"type_name"`

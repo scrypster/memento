@@ -46,6 +46,8 @@ type MemoryEngine struct {
 	mu             sync.RWMutex
 
 	// Callbacks
+	onMemoryCreated      func(memoryID string)
+	onEnrichmentStarted  func(memoryID string)
 	onEnrichmentComplete func(memoryID string)
 }
 
@@ -202,6 +204,20 @@ func NewMemoryEngineWithEmbeddings(store storage.MemoryStore, engineConfig Confi
 	return engine, nil
 }
 
+// SetOnMemoryCreated sets a callback fired when a new memory is stored (before enrichment).
+func (e *MemoryEngine) SetOnMemoryCreated(callback func(memoryID string)) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.onMemoryCreated = callback
+}
+
+// SetOnEnrichmentStarted sets a callback fired when enrichment begins processing a memory.
+func (e *MemoryEngine) SetOnEnrichmentStarted(callback func(memoryID string)) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.onEnrichmentStarted = callback
+}
+
 // SetOnEnrichmentComplete sets a callback to be called when enrichment completes for a memory.
 // The callback receives the memory ID. This is useful for triggering UI updates via WebSocket.
 func (e *MemoryEngine) SetOnEnrichmentComplete(callback func(memoryID string)) {
@@ -276,6 +292,11 @@ func (e *MemoryEngine) Store(ctx context.Context, content string) (*types.Memory
 	// Fast synchronous storage (<5ms)
 	if err := e.memoryStore.Store(ctx, memory); err != nil {
 		return nil, fmt.Errorf("failed to store memory: %w", err)
+	}
+
+	// Notify listeners that a new memory was created
+	if e.onMemoryCreated != nil {
+		e.onMemoryCreated(memory.ID)
 	}
 
 	// Queue async enrichment (non-blocking)

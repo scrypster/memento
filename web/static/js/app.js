@@ -130,18 +130,14 @@ Alpine.data('mementoApp', () => ({
   handleWebSocketMessage(message) {
     console.log('WebSocket message:', message);
 
+    // NOTE: Primary WebSocket handling is in index.html's handleWebSocketMessage.
+    // This handler only covers the legacy Alpine search component (app.js).
     switch (message.type) {
       case 'stats_update':
         this.stats = message.data;
         break;
-      case 'enrichment_progress':
-        // TODO: Update memory status in UI
-        break;
-      case 'memory_created':
-        this.addNotification('success', 'New memory created');
-        break;
       case 'error':
-        this.addNotification('error', message.data.message);
+        this.addNotification('error', message.data?.message || 'Unknown error');
         break;
     }
   },

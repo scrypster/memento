@@ -262,21 +262,32 @@
         </template>
 
         <template x-for="memory in feedResults" :key="memory.id">
-          <div class="memory-card">
+          <div class="memory-card" :class="{'ring-2 ring-cyan-400/50 animate-fade-in': memory._new}">
             <div class="memory-card-header">
               <h3 class="memory-card-title" x-text="memory.id"></h3>
-              <span class="memory-card-status"
-                    :class="{
-                      'pending': memory.status === 'pending',
-                      'complete': memory.status === 'complete',
-                      'failed': memory.status === 'failed',
-                      'enriched': memory.status === 'enriched'
-                    }"
-                    x-text="memory.status"></span>
+              <div class="flex items-center gap-2">
+                <span class="memory-card-status"
+                      :class="{
+                        'pending': memory.status === 'pending',
+                        'processing': memory.status === 'processing',
+                        'complete': memory.status === 'complete',
+                        'failed': memory.status === 'failed',
+                        'enriched': memory.status === 'enriched'
+                      }"
+                      x-text="memory.status"></span>
+                <button x-show="memory.status === 'failed'"
+                        @click="retryEnrichment(memory.id)"
+                        class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full
+                               bg-red-500/10 text-red-400 border border-red-500/30
+                               hover:bg-red-500/20 hover:text-red-300 transition-all cursor-pointer"
+                        title="Retry enrichment">
+                  ↻ Retry
+                </button>
+              </div>
             </div>
-            <p class="memory-card-content" x-text="memory.content"></p>
+            <p class="memory-card-content" x-text="memory.summary || memory.content"></p>
             <div class="memory-card-footer">
-              <span><span class="text-gray-600 dark:text-gray-400">Source:</span> <span class="memory-card-meta" x-text="memory.source"></span></span>
+              <span><span class="text-gray-600 dark:text-gray-400">Source:</span> <span class="memory-card-meta" x-text="memory.source || 'mcp'"></span></span>
               <span class="hidden sm:inline text-gray-400 dark:text-gray-600">•</span>
               <span><span class="text-gray-600 dark:text-gray-400">Created:</span> <span class="memory-card-meta" x-text="new Date(memory.created_at).toLocaleString()"></span></span>
             </div>
@@ -2399,27 +2410,45 @@
           if (this.liveFeedPaused) return;
 
           if (data.type === 'memory_created') {
-            this.showNotification(`New memory created: ${data.memoryId}`, 'success');
-            // Reload the feed if we're on feed page
             if (this.currentView === 'feed') {
-              this.loadFeed();
+              // Prepend new memory to feed with highlight
+              this.prependToFeed(data.memoryId);
+            } else {
+              this.showNotification(`New memory created: ${data.memoryId}`, 'success');
             }
           } else if (data.type === 'memory_updated') {
-            this.showNotification(`Memory updated: ${data.memoryId}`, 'info');
             if (this.currentView === 'feed') {
-              this.loadFeed();
+              this.updateFeedItem(data.memoryId);
+            } else {
+              this.showNotification(`Memory updated: ${data.memoryId}`, 'info');
             }
           } else if (data.type === 'memory_deleted') {
-            this.showNotification(`Memory deleted: ${data.memoryId}`, 'warning');
             if (this.currentView === 'feed') {
-              this.loadFeed();
+              this.feedResults = this.feedResults.filter(m => m.id !== data.memoryId);
+            } else {
+              this.showNotification(`Memory deleted: ${data.memoryId}`, 'warning');
+            }
+          } else if (data.type === 'enrichment_started') {
+            if (this.currentView === 'feed') {
+              // Update status chip to processing in-place using splice for Alpine reactivity
+              const idx = this.feedResults.findIndex(m => m.id === data.memoryId);
+              if (idx >= 0) {
+                const updated = { ...this.feedResults[idx], status: 'processing' };
+                this.feedResults.splice(idx, 1, updated);
+              } else {
+                this.updateFeedItem(data.memoryId);
+              }
             }
           } else if (data.type === 'enrichment_complete') {
-            this.showNotification(`Memory enriched: ${data.memoryId}`, 'success');
-            // Refresh queue page if it's currently visible
+            if (this.currentView === 'feed') {
+              this.updateFeedItem(data.memoryId);
+            } else {
+              this.showNotification(`Memory enriched: ${data.memoryId}`, 'success');
+            }
             if (this.currentView === 'queue') {
               this.loadQueue();
             }
+            this.loadStats();
           }
         },
 
@@ -3054,6 +3083,77 @@
             this.feedResults = [];
           } finally {
             this.feedLoading = false;
+          }
+        },
+
+        // Fetch a single memory and prepend it to the feed with a highlight
+        async prependToFeed(memoryId) {
+          if (!memoryId) return;
+          try {
+            const response = await fetch(`/api/memories/${encodeURIComponent(memoryId)}`, {
+              headers: this.connectionHeaders(),
+            });
+            if (!response.ok) return;
+            const memory = await response.json();
+            // Don't add duplicates
+            const exists = this.feedResults.find(m => m.id === memory.id);
+            if (exists) {
+              // Update in place instead
+              Object.assign(exists, memory);
+              return;
+            }
+            memory._new = true;
+            this.feedResults.unshift(memory);
+            // Remove highlight after animation
+            setTimeout(() => { memory._new = false; }, 2000);
+          } catch (e) {
+            // Fallback: full reload
+            this.loadFeed();
+          }
+        },
+
+        // Fetch updated data for a single memory and update it in-place
+        async updateFeedItem(memoryId) {
+          if (!memoryId) return;
+          try {
+            const response = await fetch(`/api/memories/${encodeURIComponent(memoryId)}`, {
+              headers: this.connectionHeaders(),
+            });
+            if (!response.ok) return;
+            const updated = await response.json();
+            const idx = this.feedResults.findIndex(m => m.id === updated.id);
+            if (idx >= 0) {
+              // Preserve reactivity with splice
+              this.feedResults.splice(idx, 1, updated);
+            } else {
+              // Memory not in feed yet — prepend it
+              updated._new = true;
+              this.feedResults.unshift(updated);
+              setTimeout(() => { updated._new = false; }, 2000);
+            }
+          } catch (e) {
+            // Fallback: full reload
+            this.loadFeed();
+          }
+        },
+
+        // Retry enrichment for a failed memory
+        async retryEnrichment(memoryId) {
+          try {
+            const response = await fetch(`/api/memories/${encodeURIComponent(memoryId)}/retry`, {
+              method: 'POST',
+              headers: { ...this.connectionHeaders(), 'Content-Type': 'application/json' },
+            });
+            if (!response.ok) {
+              const err = await response.json().catch(() => ({}));
+              this.showNotification(err.error || 'Retry failed', 'error');
+              return;
+            }
+            // Immediately update the status to pending in the UI
+            const item = this.feedResults.find(m => m.id === memoryId);
+            if (item) item.status = 'pending';
+          } catch (e) {
+            this.showNotification('Retry failed: ' + e.message, 'error');
           }
         },
 

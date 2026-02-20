@@ -70,6 +70,11 @@ func (e *MemoryEngine) processEnrichmentJob(ctx context.Context, workerID int, j
 		return
 	}
 
+	// Notify listeners that enrichment is starting
+	if e.onEnrichmentStarted != nil {
+		e.onEnrichmentStarted(job.MemoryID)
+	}
+
 	// Initialize enrichment tracking
 	var entityStatus types.EnrichmentStatus
 	var relationshipStatus types.EnrichmentStatus

@@ -54,7 +54,7 @@ func TestWebUI_FullWorkflow(t *testing.T) {
 	// Start server
 	serverReady := make(chan string, 1)
 	go func() {
-		addr := server.Start(ctx, cfg, store)
+		addr, _ := server.Start(ctx, cfg, store)
 		serverReady <- addr
 	}()
 
@@ -141,7 +141,7 @@ func TestWebUI_SecurityValidation(t *testing.T) {
 
 	serverReady := make(chan string, 1)
 	go func() {
-		addr := server.Start(ctx, cfg, store)
+		addr, _ := server.Start(ctx, cfg, store)
 		serverReady <- addr
 	}()
 
@@ -213,7 +213,7 @@ func TestWebUI_RateLimiting(t *testing.T) {
 
 	serverReady := make(chan string, 1)
 	go func() {
-		addr := server.Start(ctx, cfg, store)
+		addr, _ := server.Start(ctx, cfg, store)
 		serverReady <- addr
 	}()
 
@@ -284,7 +284,7 @@ func TestWebUI_AssetVerification(t *testing.T) {
 
 	serverReady := make(chan string, 1)
 	go func() {
-		addr := server.Start(ctx, cfg, store)
+		addr, _ := server.Start(ctx, cfg, store)
 		serverReady <- addr
 	}()
 
@@ -338,7 +338,7 @@ func TestWebUI_CRUD_Operations(t *testing.T) {
 
 	serverReady := make(chan string, 1)
 	go func() {
-		addr := server.Start(ctx, cfg, store)
+		addr, _ := server.Start(ctx, cfg, store)
 		serverReady <- addr
 	}()
 

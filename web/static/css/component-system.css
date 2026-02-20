@@ -464,6 +464,24 @@ html.light .memory-card-status.pending {
   border-color: #fde68a;
 }
 
+.memory-card-status.processing {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  animation: pulse-status 2s ease-in-out infinite;
+}
+
+html.light .memory-card-status.processing {
+  background-color: #dbeafe;
+  color: #2563eb;
+  border-color: #93c5fd;
+}
+
+@keyframes pulse-status {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 .memory-card-status.complete,
 .memory-card-status.enriched {
   background-color: rgba(16, 185, 129, 0.2);
@@ -488,6 +506,15 @@ html.light .memory-card-status.failed {
   background-color: #fee2e2;
   color: #dc2626;
   border-color: #fecaca;
+}
+
+@keyframes fade-in-card {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in-card 0.4s ease-out;
 }
 
 .memory-card-content {

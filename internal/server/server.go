@@ -36,12 +36,13 @@ func securityHeadersMiddleware(next http.Handler) http.Handler {
 }
 
 // Start initializes and starts the HTTP server.
-// Returns the actual address being listened on (useful for testing with port 0).
+// Returns the actual address being listened on (useful for testing with port 0)
+// and the WebSocketHub for wiring enrichment event broadcasts.
 // The queueGetter parameter is optional (may be nil) and is used to expose the
 // enrichment queue depth in /api/stats.
 // The connectionsConfigPath parameter is optional and points to a connections.json file
 // for loading multiple connections; if empty, only the default connection is available.
-func Start(ctx context.Context, cfg *config.Config, store storage.MemoryStore, queueGetter ...interface{}) string {
+func Start(ctx context.Context, cfg *config.Config, store storage.MemoryStore, queueGetter ...interface{}) (string, *handlers.WebSocketHub) {
 	var qg handlers.QueueSizeGetter
 	var connectionsConfigPath string
 	var maintenanceEng handlers.MaintenanceEngine
@@ -161,6 +162,7 @@ func Start(ctx context.Context, cfg *config.Config, store storage.MemoryStore, q
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
+	apiMux.HandleFunc("/api/memories/{id}/retry", maintenanceHandler.RetryEnrichment)
 	apiMux.HandleFunc("/api/stats", statsHandler.GetStats)
 	apiMux.HandleFunc("/api/activity", activityHandler.GetActivity)
 	apiMux.HandleFunc("/api/queue", queueHandler.GetQueue)
@@ -457,7 +459,7 @@ func Start(ctx context.Context, cfg *config.Config, store storage.MemoryStore, q
 		wsHub.Stop()
 	}()
 
-	return actualAddr
+	return actualAddr, wsHub
 }
 
 // findBasePath returns the base path for the project.
