@@ -236,8 +236,11 @@ The `store_memory` method returns immediately with `status: "pending"`:
 
 ### Search Implementation
 
-**v2.0**: Simple text-based filtering using `LIKE` queries
-**Future**: Vector search with semantic similarity
+**v2.0**: FTS5 full-text search with sanitized queries, stop word removal, and prefix matching
+**v2.1**: Hybrid search combining FTS5 + vector cosine similarity with Reciprocal Rank Fusion (RRF) ranking
+- Embeddings stored as binary BLOBs, generated via Ollama `nomic-embed-text` during enrichment
+- Cosine similarity computed in Go over candidate pool (capped at 10K most recent)
+- RRF merges FTS5 and vector rankings with k=60 tuning constant
 
 ### Validation
 
@@ -273,17 +276,12 @@ go test ./tests/mcp_integration_test.go
 
 ## Performance
 
-**v2.0 Targets:**
-- `store_memory`: < 10ms (database write only)
+**Targets:**
+- `store_memory`: < 10ms (database write only, enrichment runs async)
 - `recall_memory`: < 5ms (single SELECT)
-- `find_related`: < 50ms (basic filtering)
+- `find_related`: < 100ms (hybrid FTS5 + vector search with RRF fusion)
 - `retry_enrichment`: < 10ms (status update)
 - `explain_reasoning`: < 10ms (static explanation)
-
-**Future Improvements:**
-- Vector search with caching (< 100ms)
-- Semantic similarity scoring
-- LLM-based reasoning explanations
 
 ## Security
 
@@ -325,10 +323,10 @@ echo '{"jsonrpc":"2.0","method":"recall_memory","params":{"id":"mem:general:123"
 
 ## Future Enhancements
 
-### Phase 3 (Vector Search)
-- Semantic search with embeddings
-- Hybrid search (text + vector)
-- Relevance scoring
+### Phase 3 (Vector Search) — COMPLETED
+- ✅ Semantic search with cosine similarity over stored embeddings
+- ✅ Hybrid search (FTS5 + vector + RRF fusion)
+- ✅ Relevance scoring with weighted components (text match, recency, importance, confidence)
 
 ### Phase 4 (Graph Traversal)
 - Related memories via relationships

@@ -70,5 +70,8 @@ config/connections.json
 *.bak
 .claude/
 
+# MCP Registry tokens
+.mcpregistry_*
+
 # Build output
 /dist/

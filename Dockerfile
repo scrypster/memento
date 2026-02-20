@@ -52,4 +52,9 @@ ENV MEMENTO_STORAGE_ENGINE=sqlite
 
 EXPOSE 6363
 
+LABEL io.modelcontextprotocol.server.name="io.github.scrypster/memento"
+LABEL org.opencontainers.image.source="https://github.com/scrypster/memento"
+LABEL org.opencontainers.image.description="Persistent memory MCP server for AI tools"
+LABEL org.opencontainers.image.licenses="MIT"
+
 CMD ["/app/docker-entrypoint.sh"]

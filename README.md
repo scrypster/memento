@@ -5,7 +5,6 @@
 # Memento
 
 > **Give your AI tools a persistent memory — so every session starts where the last one left off.**
-> *Inspired by Nolan's Memento — except this time, the graph tattoos actually stick.*
 
 [![Version](https://img.shields.io/badge/version-v0.1.0--alpha-orange)](CHANGELOG.md)
 [![Go Version](https://img.shields.io/badge/go-1.23%2B-00ADD8?logo=go)](https://go.dev)
@@ -13,37 +12,15 @@
 [![Docker](https://img.shields.io/badge/docker-compose-2496ED?logo=docker)](docker-compose.yml)
 [![MCP](https://img.shields.io/badge/MCP-compatible-8B5CF6)](https://modelcontextprotocol.io)
 
----
+Your AI starts fresh every session. Memento fixes that.
 
-## 🎯 The Problem
+It runs on your machine, connects to any MCP-compatible AI tool, and builds a persistent knowledge graph from your conversations — entities, relationships, decisions, and context that survive every session restart.
 
-You're deep in a codebase with an AI assistant that's finally been helpful. It knows your architecture, your naming conventions, why you chose that approach for the auth service. You close the tab.
-
-Next session: it remembers nothing.
-
-**Memento fixes the critical problem of context loss in AI-assisted development:**
-
-- **🧠 Zero session memory** — your AI starts fresh every single time, no matter how much ground you covered
-- **❓ "Why did we do it this way?"** — architectural decisions made last month are invisible to your tools today
-- **🔄 Repeated explanations** — you re-explain your stack, your patterns, your constraints, session after session
-- **👶 Onboarding friction** — new team members (and new AI sessions) have no access to established context
-- **🤖 AI integration gap** — current AI tools have no persistent memory of *your specific* project and decisions
+**No cloud. No API keys required. No subscriptions. Your data stays on your machine.**
 
 ---
 
-## ✨ The Solution: A Persistent Knowledge Layer
-
-![Dashboard](docs/screenshots/dashboard.png)
-
-Memento runs on your machine and connects to any MCP-compatible AI tool. Every session, your AI already knows what you've built, who's involved, what you decided, and why.
-
-**No manual tagging. No cloud. No subscriptions. Your data stays on your machine.**
-
-> Works with **Claude Code**, **Claude Desktop**, **Cursor**, **Windsurf**, **OpenClaw**, and any MCP-compatible client.
-
----
-
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 git clone https://github.com/scrypster/memento.git
@@ -74,126 +51,87 @@ go build -o memento-web ./cmd/memento-web/ && ./memento-web
 
 ---
 
-## Connect your tools
+## First 60 Seconds
 
-The web UI at port 6363 generates all configs and shows you exactly where to place them.
+Once running, connect your AI tool and try this:
 
-### Claude Code
+```
+You: "We're using PostgreSQL for the main database — chose it for pgvector support."
 
-```bash
-claude mcp add memento -- /path/to/memento-mcp \
-  -e MEMENTO_DATA_PATH=~/.memento
+→ Memento stores the decision, extracts entities (PostgreSQL, pgvector),
+  maps the relationship (PostgreSQL → depends_on → pgvector), and indexes
+  everything for search. Returns in <10ms.
 ```
 
-### Claude Desktop
+Close the tab. Open a new session.
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+```
+You: "What database are we using?"
 
-```json
-{
-  "mcpServers": {
-    "memento": {
-      "command": "/path/to/memento-mcp",
-      "env": { "MEMENTO_DATA_PATH": "~/.memento" }
-    }
-  }
-}
+→ Your AI already knows: "PostgreSQL — you chose it for pgvector support."
+  No re-explaining. No context window tricks. It just remembers.
 ```
 
-### Cursor / Windsurf
-
-Add to `.cursor/mcp.json` or `.windsurf/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "memento": {
-      "command": "/path/to/memento-mcp",
-      "env": { "MEMENTO_DATA_PATH": "~/.memento" }
-    }
-  }
-}
-```
-
-### OpenClaw
-
-Memento is a first-class integration in [OpenClaw](https://openclaw.io). Add it as an MCP server in your OpenClaw workspace config and every agent in your swarm shares the same persistent memory — decisions made by one agent are immediately available to all others. No more context re-injection between agent calls.
-
-```json
-{
-  "mcpServers": {
-    "memento": {
-      "command": "/path/to/memento-mcp",
-      "env": { "MEMENTO_DATA_PATH": "~/.memento" }
-    }
-  }
-}
-```
-
-### Generic MCP
-
-Any MCP-compatible client uses the same pattern — command path + `MEMENTO_DATA_PATH` env var. The web UI generates a ready-to-paste config for each client.
-
----
-
-## What it looks like in practice
-
-### The knowledge graph
+Behind the scenes, Memento built this automatically:
 
 ![Graph Explorer](docs/screenshots/graph.png)
 
-Every entity Memento extracts gets wired into a graph. Your AI already knows that Python is used by Kate and Rachel, that it relates to Machine Learning and Pandas — because Memento mapped it automatically while you worked.
+Every entity gets wired into a knowledge graph — people, tools, projects, decisions — with confidence scores and timestamps.
 
-### Auto-extracted entities — zero manual input
+---
 
-![Entities](docs/screenshots/entities.png)
+## Connect Your Tools
 
-People, projects, tools, organizations, languages, APIs — extracted automatically from your AI conversations. 143 entities from 110 memories, no tagging required.
-
-### Relationship intelligence
-
-![Relationships](docs/screenshots/relationships.png)
-
-Your AI knows who `works_on` what, which tools `depend_on` which services, and what the current state of each decision is — with confidence scores and timestamps.
-
-### One-click integration setup
+Open **http://localhost:6363/integrations** — the web UI generates configs, download buttons, and connection testing for every client:
 
 ![Integrations](docs/screenshots/integrations.png)
 
-The web UI generates your client config and tells you exactly where to drop it. Cursor, Windsurf, Claude Code, Claude Desktop — all covered.
+| Client | Setup |
+|---|---|
+| **Claude Code** | `claude mcp add memento -- /path/to/memento-mcp -e MEMENTO_DATA_PATH=~/.memento` |
+| **Claude Desktop** | Download config → drop in `~/Library/Application Support/Claude/` |
+| **Cursor** | Download config → drop in `.cursor/mcp.json` + optional Cursor Rules file |
+| **Windsurf** | Download config → drop in `.codeium/windsurf/mcp_config.json` |
+| **OpenClaw** | First-class integration — install `mcp-adapter` plugin, merge config |
+| **Generic MCP** | Any MCP client — same pattern: command path + `MEMENTO_DATA_PATH` env var |
+
+> The integrations page generates ready-to-paste configs with your actual binary paths and data directories. It also has connection testing, troubleshooting, and per-project workspace scoping.
+
+### Make Claude Code proactive (recommended)
+
+The MCP connection makes tools *available*, but Claude won't use them automatically. Add this to `~/.claude/CLAUDE.md` to make Claude store decisions and recall context without being asked:
+
+```markdown
+## Memento MCP — Persistent Memory
+
+The `memento` MCP server provides persistent cross-session memory. Use these tools proactively — don't wait to be asked.
+
+**Store** (`store_memory`) when the user:
+- States a preference or working style ("I prefer X", "always use Y format")
+- Makes an architectural or technical decision
+- Establishes project context that should survive session restarts
+- Explicitly says "remember this" or similar
+
+**Recall** (`recall_memory` or `find_related`) when:
+- Starting a session for a known project — query for relevant context before diving in
+- About to make a recommendation — check for existing preferences first
+- The user asks about past decisions, choices, or "what did we decide about X"
+- Something seems like it may have been discussed in a prior session
+
+**Don't store:** transient debug output, in-progress exploration, or anything session-specific that won't matter next time.
+
+Memories are searchable immediately after storing. Enrichment (entity/relationship extraction) runs asynchronously via local Ollama.
+```
+
+> The web UI at **Integrations → Claude Code → Make it proactive** generates a version with your specific paths and connection settings, plus a download button.
+
+See the full integration guides: [Claude Code](docs/integrations/claude-code.md) | [Claude Desktop](docs/integrations/claude-desktop.md) | [Cursor & Windsurf](docs/integrations/cursor-windsurf.md)
 
 ---
 
-## The workflow
+## What Your AI Gets
 
-### Before starting work
-Your AI already has context. No re-explaining your stack, team, or constraints.
-
-```
-"What database decisions have we made?"
-→ Memento surfaces: PostgreSQL for main storage (chosen for pgvector), Redis for sessions (security decision, March 2025)
-```
-
-### During development
-Decisions get stored as you make them — automatically.
-
-```
-"We're switching the auth service to JWT"
-→ Memento stores the decision, extracts entities, maps relationships to existing auth memories
-```
-
-### Across sessions
-The next session starts with everything intact.
-
-```
-New session, fresh tab — your AI opens knowing your full project context, team, and decision history
-```
-
----
-
-## What your AI gets
-
-Once connected, your AI has **20 tools** it can call automatically — no prompting required:
+Once connected, your AI has **20 tools** it can call — no prompting required:
 
 ### Core memory operations
 
@@ -244,31 +182,49 @@ Once connected, your AI has **20 tools** it can call automatically — no prompt
 
 ---
 
-## Why Memento vs. everything else
+## What It Looks Like
 
-### vs. Just using the AI's context window
-- **Persistent**: Survives session ends, tab closes, computer restarts
-- **Searchable**: Find any decision from any past session by meaning, not keyword
-- **Cross-session**: Build context over weeks and months, not just within one chat
+### Auto-extracted entities — zero manual input
 
-### vs. Writing docs / wikis
-- **Automatic**: No manual effort — it captures context as you work
-- **Connected**: Relationships between concepts vs. isolated pages
-- **Usage-driven**: Frequently accessed knowledge rises; stale context fades
+![Entities](docs/screenshots/entities.png)
 
-### vs. Code comments
-- **Survives refactoring**: Business reasoning preserved even as code changes
-- **Cross-project**: Not locked inside one file or repo
-- **AI-native**: Designed to be queried by LLMs, not just humans
+People, projects, tools, organizations, languages, APIs — extracted automatically from your AI conversations. No tagging required.
 
-### vs. Slack / Notion
-- **Structured**: Enforced knowledge graph vs. message chaos or free-form text
-- **AI-queryable**: Your tools can search it programmatically, not just you
-- **Private**: Runs on your machine, not a third-party SaaS
+### Relationship intelligence
+
+![Relationships](docs/screenshots/relationships.png)
+
+Your AI knows who `works_on` what, which tools `depend_on` which services, and what the current state of each decision is — with confidence scores and timestamps.
+
+### The dashboard
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+Live enrichment queue, entity browser, relationship explorer, and graph visualizer — all in the web UI.
 
 ---
 
-## How it works
+## Why Memento
+
+### vs. Mem0
+
+Mem0 requires cloud API keys and a paid plan for production use. Memento runs entirely on your machine with Ollama — no API keys, no cloud, no per-memory pricing. Memento also ships a full web UI with graph visualization, entity browser, and one-click integration setup. Mem0 has no web interface.
+
+### vs. Zep / Graphiti
+
+Zep requires Neo4j or FalkorDB for its knowledge graph. Memento uses SQLite (zero deps) or PostgreSQL — no graph database to manage. Zep's open-source version is limited; the full feature set requires Zep Cloud.
+
+### vs. Built-in AI memory (ChatGPT, Claude)
+
+Built-in memory is a flat list of facts with no relationships, no search, no graph, and no way to export or control your data. Memento gives you a structured knowledge graph you own, with hybrid search and full lifecycle management.
+
+### vs. Writing docs or wikis
+
+Memento captures context automatically as you work — no manual effort. It builds relationships between concepts instead of isolated pages, and it's designed to be queried by LLMs, not just humans.
+
+---
+
+## How It Works
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -302,12 +258,12 @@ Once connected, your AI has **20 tools** it can call automatically — no prompt
 
 ## Features
 
-**No cloud required**
+**Runs entirely offline**
 - Ollama runs locally — default setup never makes an external network call
 - SQLite database is a single file you own: `~/.memento/memento.db`
 - Swap to OpenAI or Anthropic when you want stronger extraction — opt-in only
 
-**Search that actually works**
+**Hybrid search**
 - FTS5 full-text + semantic vector search fused with Reciprocal Rank Fusion (RRF)
 - Finds what you mean, not just what you typed
 
@@ -316,7 +272,7 @@ Once connected, your AI has **20 tools** it can call automatically — no prompt
 - Maps 44 relationship types with confidence scores
 - Interactive graph explorer in the web UI
 
-**Memory that ages gracefully**
+**Memory lifecycle**
 - Lifecycle states: `planning → active → paused | blocked | completed | cancelled → archived`
 - Decay scoring — stale context loses ranking weight naturally
 - Access-frequency boosting — memories you recall often stay prominent
@@ -329,13 +285,15 @@ Once connected, your AI has **20 tools** it can call automatically — no prompt
 - Separate memory namespaces per project, client, or workspace
 - Route MCP calls to different connections with a single env var
 
-**Observable**
-- Web UI: live enrichment queue, entity browser, relationship explorer, graph visualizer
+**Web UI**
+- Dashboard with live enrichment queue, entity browser, relationship explorer, graph visualizer
+- One-click integration setup for every supported client
+- Connection testing, CLAUDE.md generation, Cursor Rules download
 - Tracks unrecognized LLM entity types so you can expand your taxonomy over time
 
 ---
 
-## LLM providers
+## LLM Providers
 
 | Provider | Setup | Use when |
 |---|---|---|
@@ -378,7 +336,7 @@ MEMENTO_DATABASE_URL=postgres://memento:memento_dev_password@localhost:5433/meme
 
 ---
 
-## Project structure
+## Project Structure
 
 ```
 memento/
@@ -397,6 +355,8 @@ memento/
 │   ├── handlers/           # HTMX handlers
 │   ├── templates/          # Dashboard, graph, entities, settings, integrations
 │   └── static/templates/   # MCP config snippets generated per client
+├── docs/
+│   └── integrations/       # Per-client integration guides
 ├── migrations/             # SQL schema migrations
 └── docker-compose.yml
 ```
@@ -429,6 +389,5 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-**Remember everything. Forget nothing.** 🧠✨
-
+*Remember everything. Forget nothing.*
 *Unlike Leonard Shelby, your context is here to stay — searchable, versioned, and backed by a knowledge graph that never fades.*

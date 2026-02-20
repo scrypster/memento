@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.scrypster/memento",
+  "title": "Memento",
+  "description": "Persistent memory for AI tools. Local-first knowledge graph with hybrid search.",
+  "websiteUrl": "https://github.com/scrypster/memento",
+  "repository": {
+    "url": "https://github.com/scrypster/memento",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/scrypster/memento:0.1.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

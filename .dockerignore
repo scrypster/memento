@@ -64,3 +64,4 @@ docker-compose*.yml
 # Scripts (exclude all except entrypoint)
 scripts/
 !scripts/docker-entrypoint.sh
+!scripts/download-vendor-assets.sh
