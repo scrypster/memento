@@ -139,7 +139,7 @@ func insertTestMemory(t *testing.T, db *sql.DB, memoryID, content string) {
 func TestEnrichmentPipeline_HappyPath(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	memoryID := "mem:test:001"
 	content := "MJ works with Norma and they live in New York. MJ specializes in Go."
@@ -249,7 +249,7 @@ func TestEnrichmentPipeline_HappyPath(t *testing.T) {
 func TestEnrichmentPipeline_Call1Fails(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	memoryID := "mem:test:002"
 	content := "Test content for entity extraction"
@@ -302,7 +302,7 @@ func TestEnrichmentPipeline_Call1Fails(t *testing.T) {
 func TestEnrichmentPipeline_Call2Fails(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	memoryID := "mem:test:003"
 	content := "MJ works with Norma on Go projects."
@@ -380,7 +380,7 @@ func TestEnrichmentPipeline_Call2Fails(t *testing.T) {
 func TestEnrichmentPipeline_EmptyEntityResponse(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	memoryID := "mem:test:004"
 	content := "Some generic content with no identifiable entities"
@@ -443,7 +443,7 @@ func TestEnrichmentPipeline_EmptyEntityResponse(t *testing.T) {
 func TestLinkEntityToMemory_FrequencyIncrement(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	memoryID := "mem:test:005"
 	entityID := "ent:person:abc123"
@@ -517,7 +517,7 @@ func TestLinkEntityToMemory_FrequencyIncrement(t *testing.T) {
 func TestEnrichmentPipeline_MultipleEntitiesandRelationships(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	memoryID := "mem:test:006"
 	content := "MJ and Steve work together on OPS. They use Go and PostgreSQL."
@@ -569,21 +569,27 @@ func TestEnrichmentPipeline_MultipleEntitiesandRelationships(t *testing.T) {
 
 	// Verify entities in database
 	var entityCount int
-	db.QueryRow(`SELECT COUNT(*) FROM entities`).Scan(&entityCount)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM entities`).Scan(&entityCount); err != nil {
+		t.Fatalf("failed to count entities: %v", err)
+	}
 	if entityCount != 5 {
 		t.Errorf("Expected 5 entities in DB, got %d", entityCount)
 	}
 
 	// Verify relationships in database
 	var relCount int
-	db.QueryRow(`SELECT COUNT(*) FROM relationships`).Scan(&relCount)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM relationships`).Scan(&relCount); err != nil {
+		t.Fatalf("failed to count relationships: %v", err)
+	}
 	if relCount != 4 {
 		t.Errorf("Expected 4 relationships in DB, got %d", relCount)
 	}
 
 	// Verify memory-entity links
 	var linkCount int
-	db.QueryRow(`SELECT COUNT(*) FROM memory_entities`).Scan(&linkCount)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM memory_entities`).Scan(&linkCount); err != nil {
+		t.Fatalf("failed to count memory_entities: %v", err)
+	}
 	if linkCount != 5 {
 		t.Errorf("Expected 5 memory-entity links, got %d", linkCount)
 	}
@@ -609,7 +615,7 @@ func TestEnrichmentPipeline_MultipleEntitiesandRelationships(t *testing.T) {
 func TestEnrichmentPipeline_InvalidEntityType(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	memoryID := "mem:test:007"
 	content := "MJ is a person, ACME is a company, and mysterious is unknown."
@@ -671,7 +677,7 @@ func TestEnrichmentPipeline_InvalidEntityType(t *testing.T) {
 func TestEnrichmentPipeline_ConfidenceRangeValidation(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	memoryID := "mem:test:008"
 	content := "Test content with confidence issues."
@@ -728,7 +734,7 @@ func TestEnrichmentPipeline_ConfidenceRangeValidation(t *testing.T) {
 func TestEnrichmentPipeline_Call3Fails(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	memoryID := "mem:test:009"
 	content := "MJ works with Go on important projects."
@@ -801,7 +807,7 @@ func TestEnrichmentPipeline_Call3Fails(t *testing.T) {
 func TestEnrichmentPipeline_Call4Fails(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	memoryID := "mem:test:010"
 	content := "MJ and Norma work on important projects together."
@@ -873,7 +879,7 @@ func TestEnrichmentPipeline_Call4Fails(t *testing.T) {
 func TestEnrichmentPipeline_StoresIntoDatabase(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	memoryID := "mem:test:011"
 	content := "Alice collaborates with Bob on projects using Python."
@@ -920,7 +926,7 @@ func TestEnrichmentPipeline_StoresIntoDatabase(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to query entities: %v", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var entities []EntityRow
 	for rows.Next() {

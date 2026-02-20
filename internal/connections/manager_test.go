@@ -61,7 +61,7 @@ func TestGetStore_ReturnsStoreForValidConnection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	store, err := manager.GetStore("test-conn")
 	if err != nil {
@@ -93,7 +93,7 @@ func TestGetStore_CachesStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	store1, err := manager.GetStore("test-conn")
 	if err != nil {
@@ -134,7 +134,7 @@ func TestGetStore_ConcurrentAccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	// Pre-cache the store to test concurrent read access to the cache
 	_, err = manager.GetStore("test-conn")
@@ -181,7 +181,7 @@ func TestGetStore_UnknownConnection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	_, err = manager.GetStore("nonexistent")
 	if err == nil {
@@ -210,7 +210,7 @@ func TestGetStore_DisabledConnection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	_, err = manager.GetStore("test-conn")
 	if err == nil {
@@ -239,7 +239,7 @@ func TestGetStore_DefaultConnection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	store, err := manager.GetStore("")
 	if err != nil {
@@ -278,7 +278,7 @@ func TestAddConnection_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	newConn := Connection{
 		Name:    "new-conn",
@@ -331,7 +331,7 @@ func TestAddConnection_DuplicateName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	duplicateConn := Connection{
 		Name:    "default",
@@ -376,7 +376,7 @@ func TestAddConnection_MaxConnectionsEnforced(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	newConn := Connection{
 		Name:    "new-conn",
@@ -422,7 +422,7 @@ func TestAddConnection_ZeroMaxLimit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	// Try to add a new connection - should fail because we're already at limit
 	newConn := Connection{
@@ -461,7 +461,7 @@ func TestDeleteConnection_DefaultConnectionRejected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	err = manager.DeleteConnection(context.Background(), "default")
 	if err == nil {
@@ -505,7 +505,7 @@ func TestDeleteConnection_RemovesFromCache(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	// Verify the connection exists before deletion
 	_, err = manager.GetStore("to-delete")
@@ -640,7 +640,7 @@ func TestListConnections(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	connections := manager.ListConnections()
 	if len(connections) != 2 {
@@ -681,7 +681,7 @@ func TestUpdateConnection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	// Cache the store
 	_, err = manager.GetStore("default")
@@ -742,7 +742,7 @@ func TestSetDefaultConnection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	if err := manager.SetDefaultConnection(context.Background(), "secondary"); err != nil {
 		t.Fatalf("SetDefaultConnection() failed: %v", err)
@@ -773,7 +773,7 @@ func TestSetDefaultConnection_InvalidConnection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	err = manager.SetDefaultConnection(context.Background(), "nonexistent")
 	if err == nil {
@@ -802,7 +802,7 @@ func TestTestConnection_SQLite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	conn := Connection{
 		Name: "test-conn",
@@ -838,7 +838,7 @@ func TestTestConnection_InvalidDatabaseType(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create manager: %v", err)
 	}
-	defer manager.Close()
+	defer func() { _ = manager.Close() }()
 
 	conn := Connection{
 		Name: "test-conn",
