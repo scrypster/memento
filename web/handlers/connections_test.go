@@ -617,7 +617,7 @@ func TestConnectionHandlers_TestConnection_Success(t *testing.T) {
 	// Create an empty SQLite database file
 	f, err := os.Create(dbPath)
 	require.NoError(t, err)
-	f.Close()
+	_ = f.Close()
 
 	req := TestConnectionRequest{
 		Database: connections.DatabaseConfig{

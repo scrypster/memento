@@ -25,7 +25,7 @@ func TestResolveConnectionsConfig_EnvVarSet(t *testing.T) {
 		t.Fatalf("failed to create temp file: %v", err)
 	}
 	defer func() { _ = os.Remove(tmpFile.Name()) }()
-	tmpFile.Close()
+	_ = tmpFile.Close()
 
 	// Set the env var to point to our temp file.
 	t.Setenv("MEMENTO_CONNECTIONS_CONFIG", tmpFile.Name())
@@ -222,7 +222,7 @@ func TestResolveConnectionsConfig_EnvVarTakesPriority(t *testing.T) {
 		t.Fatalf("failed to create temp file for env var: %v", err)
 	}
 	defer func() { _ = os.Remove(envConfigFile.Name()) }()
-	envConfigFile.Close()
+	_ = envConfigFile.Close()
 
 	t.Setenv("MEMENTO_CONNECTIONS_CONFIG", envConfigFile.Name())
 
