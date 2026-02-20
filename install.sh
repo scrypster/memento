@@ -2,9 +2,9 @@
 set -e
 
 # Memento installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/scrypster/memento-go/main/install.sh | sh
+# Usage: curl -fsSL https://raw.githubusercontent.com/scrypster/memento/main/install.sh | sh
 
-REPO="scrypster/memento-go"
+REPO="scrypster/memento"
 INSTALL_DIR="${MEMENTO_INSTALL_DIR:-$HOME/.local/bin}"
 DATA_DIR="${MEMENTO_DATA_DIR:-$HOME/.memento}"
 
@@ -43,7 +43,7 @@ if command -v docker &>/dev/null && command -v docker-compose &>/dev/null || \
     echo ""
     echo "  Quick start with Docker:"
     echo "  $ git clone https://github.com/$REPO"
-    echo "  $ cd memento-go"
+    echo "  $ cd memento"
     echo "  $ docker compose up -d"
     echo "  $ open http://localhost:6363"
     echo ""
@@ -76,7 +76,7 @@ else
     echo ""
     echo "  Start with Docker Compose:"
     echo "  $ git clone https://github.com/$REPO"
-    echo "  $ cd memento-go"
+    echo "  $ cd memento"
     echo "  $ docker compose up -d"
     echo "  $ open http://localhost:6363"
     echo ""
