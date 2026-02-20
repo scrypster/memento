@@ -1028,10 +1028,8 @@ func TestList_PaginationPage2(t *testing.T) {
 	ctx := context.Background()
 
 	// Store 5 memories
-	ids := []string{}
 	for i := 1; i <= 5; i++ {
 		id := "mem:test:pagination-page2-" + string(rune(48+i))
-		ids = append(ids, id)
 		mem := &types.Memory{
 			ID:      id,
 			Content: "Content " + string(rune(48+i)),
