@@ -96,5 +96,16 @@ cat > "$CONFIG_FILE" << 'JSONEOF'
 }
 JSONEOF
 
+# Warn if running without authentication
+SECURITY_MODE="${MEMENTO_SECURITY_MODE:-development}"
+API_TOKEN="${MEMENTO_API_TOKEN:-}"
+if [ "$SECURITY_MODE" = "development" ] && [ -z "$API_TOKEN" ]; then
+    echo ""
+    echo "⚠  WARNING: Running in development mode — no authentication required."
+    echo "   Anyone with access to port ${MEMENTO_PORT:-6363} can read and write your memories."
+    echo "   To enable auth: set MEMENTO_API_TOKEN in your environment or .env file."
+    echo ""
+fi
+
 echo "Starting Memento..."
 exec ./memento-web "$@"
