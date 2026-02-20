@@ -18,7 +18,7 @@ func backupSQLite(sourcePath, destPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open source database: %w", err)
 	}
-	defer sourceDB.Close()
+	defer func() { _ = sourceDB.Close() }()
 
 	// Verify source database is accessible
 	if err := sourceDB.Ping(); err != nil {
@@ -42,7 +42,7 @@ func verifyBackup(backupPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open backup: %w", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Run integrity check
 	var result string
@@ -72,14 +72,14 @@ func restoreSQLite(backupPath, targetPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open backup: %w", err)
 	}
-	defer src.Close()
+	defer func() { _ = src.Close() }()
 
 	// Create destination file
 	dst, err := os.Create(targetPath)
 	if err != nil {
 		return fmt.Errorf("failed to create target file: %w", err)
 	}
-	defer dst.Close()
+	defer func() { _ = dst.Close() }()
 
 	// Copy backup to target
 	if _, err := io.Copy(dst, src); err != nil {

@@ -52,8 +52,8 @@ func NewBenchEngine(b *testing.B) (*engine.MemoryEngine, func()) {
 	}
 
 	cleanup := func() {
-		eng.Shutdown(context.Background())
-		store.Close()
+		_ = eng.Shutdown(context.Background())
+		_ = store.Close()
 	}
 
 	return eng, cleanup
@@ -340,11 +340,11 @@ func BenchmarkConcurrentOperations(b *testing.B) {
 			// Mix of operations
 			switch i % 3 {
 			case 0: // Store
-				eng.Store(ctx, "New memory")
+				_, _ = eng.Store(ctx, "New memory")
 			case 1: // Get
-				eng.Get(ctx, memoryIDs[i%len(memoryIDs)])
+				_, _ = eng.Get(ctx, memoryIDs[i%len(memoryIDs)])
 			case 2: // Search
-				eng.Search(ctx, engine.SearchOptions{
+				_, _ = eng.Search(ctx, engine.SearchOptions{
 					Query: "memory",
 					Limit: 5,
 				})
@@ -359,6 +359,6 @@ func init() {
 	// Ensure we're in the right directory
 	if _, err := os.Stat("../../migrations"); err != nil {
 		// Try to change to repo root
-		os.Chdir("../..")
+		_ = os.Chdir("../..")
 	}
 }

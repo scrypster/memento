@@ -6,8 +6,7 @@ import (
 )
 
 func TestDetectAgentFromMementoAgentName(t *testing.T) {
-	os.Setenv("MEMENTO_AGENT_NAME", "my-agent")
-	defer os.Unsetenv("MEMENTO_AGENT_NAME")
+	t.Setenv("MEMENTO_AGENT_NAME", "my-agent")
 	got := detectAgentUncached()
 	if got != "my-agent" {
 		t.Errorf("expected my-agent, got %s", got)
@@ -15,9 +14,8 @@ func TestDetectAgentFromMementoAgentName(t *testing.T) {
 }
 
 func TestDetectAgentFromMementoUser(t *testing.T) {
-	os.Unsetenv("MEMENTO_AGENT_NAME")
-	os.Setenv("MEMENTO_USER", "mjbonanno")
-	defer os.Unsetenv("MEMENTO_USER")
+	_ = os.Unsetenv("MEMENTO_AGENT_NAME")
+	t.Setenv("MEMENTO_USER", "mjbonanno")
 	got := detectAgentUncached()
 	if got != "mjbonanno" {
 		t.Errorf("expected mjbonanno, got %s", got)
@@ -25,8 +23,8 @@ func TestDetectAgentFromMementoUser(t *testing.T) {
 }
 
 func TestDetectAgentFallback(t *testing.T) {
-	os.Unsetenv("MEMENTO_AGENT_NAME")
-	os.Unsetenv("MEMENTO_USER")
+	_ = os.Unsetenv("MEMENTO_AGENT_NAME")
+	_ = os.Unsetenv("MEMENTO_USER")
 	got := detectAgentUncached()
 	// Should be either a real git name or "unknown" — not empty
 	if got == "" {

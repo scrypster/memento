@@ -92,7 +92,7 @@ func (h *MaintenanceHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("maintenance: failed to query stored models for %s: %v", name, err)
 	} else {
-		defer rows.Close()
+		defer func() { _ = rows.Close() }()
 		for rows.Next() {
 			var mc ModelCount
 			if err := rows.Scan(&mc.Model, &mc.Count); err == nil {
@@ -117,7 +117,7 @@ func (h *MaintenanceHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(status)
+	_ = json.NewEncoder(w).Encode(status)
 }
 
 // backfillRequest is the request body for POST /api/connections/{name}/maintenance/backfill.
@@ -168,7 +168,7 @@ func (h *MaintenanceHandler) RunBackfill(w http.ResponseWriter, r *http.Request)
 			http.Error(w, "failed to query memories: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer rows.Close()
+		defer func() { _ = rows.Close() }()
 
 		for rows.Next() {
 			var id, content string
@@ -197,7 +197,7 @@ func (h *MaintenanceHandler) RunBackfill(w http.ResponseWriter, r *http.Request)
 			http.Error(w, "failed to query memories: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer rows.Close()
+		defer func() { _ = rows.Close() }()
 
 		for rows.Next() {
 			var id, content string
@@ -231,7 +231,7 @@ func (h *MaintenanceHandler) RunBackfill(w http.ResponseWriter, r *http.Request)
 			http.Error(w, "failed to query memories: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer rows.Close()
+		defer func() { _ = rows.Close() }()
 
 		for rows.Next() {
 			var id, content string
@@ -257,7 +257,7 @@ func (h *MaintenanceHandler) RunBackfill(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 // RetryEnrichment handles POST /api/memories/{id}/retry.
@@ -295,7 +295,7 @@ func (h *MaintenanceHandler) RetryEnrichment(w http.ResponseWriter, r *http.Requ
 	if mem.Status != "failed" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"id":      memoryID,
 			"queued":  false,
 			"message": "Memory is not in failed state (current: " + string(mem.Status) + ")",
@@ -317,7 +317,7 @@ func (h *MaintenanceHandler) RetryEnrichment(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"id":      memoryID,
 		"queued":  queued,
 		"message": "Memory queued for enrichment retry",
@@ -373,10 +373,10 @@ func (h *MaintenanceHandler) GetUnknownTypes(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		// Table may not exist yet (migration not run); return empty result
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 		return
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
 		var domain, typeName, firstSeen, lastSeen string
@@ -394,5 +394,5 @@ func (h *MaintenanceHandler) GetUnknownTypes(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(resp)
 }

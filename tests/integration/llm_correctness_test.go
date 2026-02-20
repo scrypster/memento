@@ -271,7 +271,7 @@ func TestMemoryEnrichmentPipeline(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create test store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Create enrichment service
 	client := llm.NewOllamaClient("http://localhost:11434", "qwen2.5:7b")

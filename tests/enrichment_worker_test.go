@@ -21,7 +21,7 @@ func TestMemoryEngineStore_NonBlocking(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Create memory engine with minimal worker pool
 	engineCfg := engine.Config{
@@ -42,7 +42,7 @@ func TestMemoryEngineStore_NonBlocking(t *testing.T) {
 	if err := eng.Start(ctx); err != nil {
 		t.Fatalf("failed to start engine: %v", err)
 	}
-	defer eng.Shutdown(ctx)
+	defer func() { _ = eng.Shutdown(ctx) }()
 
 	// Store a memory and measure time
 	content := "Test memory content for non-blocking store"
@@ -83,7 +83,7 @@ func TestEnrichmentWorker_ProcessesJobs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Create memory engine
 	engineCfg := engine.Config{
@@ -104,7 +104,7 @@ func TestEnrichmentWorker_ProcessesJobs(t *testing.T) {
 	if err := eng.Start(ctx); err != nil {
 		t.Fatalf("failed to start engine: %v", err)
 	}
-	defer eng.Shutdown(ctx)
+	defer func() { _ = eng.Shutdown(ctx) }()
 
 	// Store multiple memories
 	numMemories := 10
@@ -167,7 +167,7 @@ func TestEnrichmentQueue_Full(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Create memory engine with very small queue
 	engineCfg := engine.Config{
@@ -188,7 +188,7 @@ func TestEnrichmentQueue_Full(t *testing.T) {
 	if err := eng.Start(ctx); err != nil {
 		t.Fatalf("failed to start engine: %v", err)
 	}
-	defer eng.Shutdown(ctx)
+	defer func() { _ = eng.Shutdown(ctx) }()
 
 	// Flood the queue by storing many memories quickly.
 	// Some stores may return an "enrichment queue full" error when the queue is
@@ -270,7 +270,7 @@ func TestStartupRecovery(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx := context.Background()
 
@@ -310,7 +310,7 @@ func TestStartupRecovery(t *testing.T) {
 	if err := eng.Start(ctx); err != nil {
 		t.Fatalf("failed to start engine: %v", err)
 	}
-	defer eng.Shutdown(ctx)
+	defer func() { _ = eng.Shutdown(ctx) }()
 
 	// Wait for recovery to complete
 	timeout := time.After(5 * time.Second)
@@ -361,7 +361,7 @@ func TestGracefulShutdown(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Create memory engine
 	engineCfg := engine.Config{
@@ -433,7 +433,7 @@ func TestGracefulShutdown_Timeout(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Create memory engine with very short shutdown timeout
 	engineCfg := engine.Config{

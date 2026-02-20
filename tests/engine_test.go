@@ -48,7 +48,7 @@ func createTestMemory(t *testing.T, store storage.MemoryStore, content string, i
 // TestSearchOrchestrator_BasicSearch tests basic search functionality
 func TestSearchOrchestrator_BasicSearch(t *testing.T) {
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	orchestrator := engine.NewSearchOrchestrator(store)
 
@@ -122,7 +122,7 @@ func TestSearchOrchestrator_BasicSearch(t *testing.T) {
 // TestSearchOrchestrator_Pagination tests pagination functionality
 func TestSearchOrchestrator_Pagination(t *testing.T) {
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	orchestrator := engine.NewSearchOrchestrator(store)
 
@@ -162,7 +162,7 @@ func TestSearchOrchestrator_Pagination(t *testing.T) {
 // TestSearchOrchestrator_ScoreComponents tests score breakdown
 func TestSearchOrchestrator_ScoreComponents(t *testing.T) {
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	orchestrator := engine.NewSearchOrchestrator(store)
 
@@ -217,7 +217,7 @@ func TestInferenceEngine_DirectConnections(t *testing.T) {
 	t.Skip("Skipping until storage layer supports Entities field persistence")
 
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	inference := engine.NewInferenceEngine(store)
 
@@ -259,7 +259,7 @@ func TestInferenceEngine_TransitiveConnections(t *testing.T) {
 	t.Skip("Skipping until storage layer supports Entities field persistence")
 
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	inference := engine.NewInferenceEngine(store)
 
@@ -299,7 +299,7 @@ func TestInferenceEngine_TransitiveConnections(t *testing.T) {
 // TestDecayManager_ExponentialDecay tests exponential decay calculation
 func TestDecayManager_ExponentialDecay(t *testing.T) {
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// DecayManager now takes only halfLifeHours in hours (30 days = 720 hours)
 	manager := engine.NewDecayManagerWithHalfLife(720) // 30 days
@@ -330,7 +330,7 @@ func TestDecayManager_ExponentialDecay(t *testing.T) {
 // TestDecayManager_UsageBoost tests decay calculation with updated access time
 func TestDecayManager_UsageBoost(t *testing.T) {
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	manager := engine.NewDecayManagerWithHalfLife(720) // 30 days
 
@@ -361,7 +361,7 @@ func TestDecayManager_UsageBoost(t *testing.T) {
 // TestDecayManager_VeryOldMemory tests decay with very old memory
 func TestDecayManager_VeryOldMemory(t *testing.T) {
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Very short half-life for testing (1 hour)
 	manager := engine.NewDecayManagerWithHalfLife(1.0)
@@ -395,7 +395,7 @@ func TestDecayManager_VeryOldMemory(t *testing.T) {
 // TestDecayManager_ApplyDecay tests applying decay to a memory
 func TestDecayManager_ApplyDecay(t *testing.T) {
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	manager := engine.NewDecayManagerWithHalfLife(30 * 24) // 30 days in hours
 
@@ -439,7 +439,7 @@ func TestDecayManager_ApplyDecay(t *testing.T) {
 // TestConfidenceScorer_MultiFactorScore tests multi-factor confidence calculation
 func TestConfidenceScorer_MultiFactorScore(t *testing.T) {
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	scorer := engine.NewConfidenceScorer(store)
 
@@ -457,7 +457,7 @@ func TestConfidenceScorer_MultiFactorScore(t *testing.T) {
 		Entities:           []string{"ent:person:alice"},
 	}
 
-	store.Store(context.Background(), mem)
+	_ = store.Store(context.Background(), mem)
 
 	// Calculate confidence
 	confidence, err := scorer.CalculateMemoryConfidence(context.Background(), mem)
@@ -491,7 +491,7 @@ func TestConfidenceScorer_MultiFactorScore(t *testing.T) {
 // TestConfidenceScorer_SourceReliability tests source-based scoring
 func TestConfidenceScorer_SourceReliability(t *testing.T) {
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	scorer := engine.NewConfidenceScorer(store)
 
@@ -528,7 +528,7 @@ func TestConfidenceScorer_SourceReliability(t *testing.T) {
 				Status:             types.StatusEnriched,
 			}
 
-			store.Store(context.Background(), mem)
+			_ = store.Store(context.Background(), mem)
 
 			confidence, err := scorer.CalculateMemoryConfidence(context.Background(), mem)
 			if err != nil {
@@ -552,7 +552,7 @@ func TestConfidenceScorer_SourceReliability(t *testing.T) {
 // TestConfidenceScorer_UpdateConfidence tests confidence update
 func TestConfidenceScorer_UpdateConfidence(t *testing.T) {
 	store := createTestMemoryStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	scorer := engine.NewConfidenceScorer(store)
 

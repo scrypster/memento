@@ -96,7 +96,7 @@ func parseResponse(t *testing.T, line string) rpcResponse {
 // in a successful JSON-RPC 2.0 response written to stdout.
 func TestStdioTransport_StoreMemory(t *testing.T) {
 	srv, closer := newTestServer(t)
-	defer closer.Close()
+	defer func() { _ = closer.Close() }()
 
 	req := rpcRequest{
 		JSONRPC: "2.0",
@@ -138,7 +138,7 @@ func TestStdioTransport_StoreMemory(t *testing.T) {
 // a JSON-RPC parse-error response on stdout – not a crash or a stray log line.
 func TestStdioTransport_MalformedJSON(t *testing.T) {
 	srv, closer := newTestServer(t)
-	defer closer.Close()
+	defer func() { _ = closer.Close() }()
 
 	lines := serveInput(t, srv, "this is not json\n")
 
@@ -161,7 +161,7 @@ func TestStdioTransport_MalformedJSON(t *testing.T) {
 // results in a method-not-found error response.
 func TestStdioTransport_UnknownMethod(t *testing.T) {
 	srv, closer := newTestServer(t)
-	defer closer.Close()
+	defer func() { _ = closer.Close() }()
 
 	req := rpcRequest{
 		JSONRPC: "2.0",
@@ -191,7 +191,7 @@ func TestStdioTransport_UnknownMethod(t *testing.T) {
 // the input stream produce no responses (they are silently ignored).
 func TestStdioTransport_EmptyLinesSkipped(t *testing.T) {
 	srv, closer := newTestServer(t)
-	defer closer.Close()
+	defer func() { _ = closer.Close() }()
 
 	// Three empty lines then one valid request.
 	req := rpcRequest{
@@ -220,7 +220,7 @@ func TestStdioTransport_EmptyLinesSkipped(t *testing.T) {
 // requests are all answered in order.
 func TestStdioTransport_MultipleRequests(t *testing.T) {
 	srv, closer := newTestServer(t)
-	defer closer.Close()
+	defer func() { _ = closer.Close() }()
 
 	var sb strings.Builder
 	ids := []int{10, 20, 30}
@@ -257,7 +257,7 @@ func TestStdioTransport_MultipleRequests(t *testing.T) {
 // causes Serve to return cleanly without blocking.
 func TestStdioTransport_ContextCancellation(t *testing.T) {
 	srv, closer := newTestServer(t)
-	defer closer.Close()
+	defer func() { _ = closer.Close() }()
 
 	// Use a pipe so we can control when stdin closes.
 	pr, pw := io.Pipe()
@@ -273,7 +273,7 @@ func TestStdioTransport_ContextCancellation(t *testing.T) {
 
 	// Cancel the context and close the write end of the pipe.
 	cancel()
-	pw.Close()
+	_ = pw.Close()
 
 	select {
 	case err := <-done:
@@ -291,7 +291,7 @@ func TestStdioTransport_ContextCancellation(t *testing.T) {
 // wrong jsonrpc version field produces an invalid-request error.
 func TestStdioTransport_InvalidJSONRPCVersion(t *testing.T) {
 	srv, closer := newTestServer(t)
-	defer closer.Close()
+	defer func() { _ = closer.Close() }()
 
 	req := rpcRequest{
 		JSONRPC: "1.0", // Wrong version
@@ -321,7 +321,7 @@ func TestStdioTransport_InvalidJSONRPCVersion(t *testing.T) {
 // JSON (not a log line or other stray output).
 func TestStdioTransport_ResponseIsValidJSON(t *testing.T) {
 	srv, closer := newTestServer(t)
-	defer closer.Close()
+	defer func() { _ = closer.Close() }()
 
 	req := rpcRequest{
 		JSONRPC: "2.0",

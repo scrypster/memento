@@ -44,7 +44,7 @@ func NewMemoryStore(dsn string) (*MemoryStore, error) {
 
 	// Verify connection
 	if err := db.Ping(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("postgres: failed to ping database: %w", err)
 	}
 
@@ -52,7 +52,7 @@ func NewMemoryStore(dsn string) (*MemoryStore, error) {
 
 	// Apply the base schema (idempotent — all statements use IF NOT EXISTS).
 	if _, err := db.Exec(Schema); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("postgres: failed to apply schema: %w", err)
 	}
 
@@ -526,7 +526,7 @@ func (s *MemoryStore) List(ctx context.Context, opts storage.ListOptions) (*stor
 	if err != nil {
 		return nil, fmt.Errorf("postgres: failed to list memories: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var memories []types.Memory
 
@@ -898,7 +898,7 @@ func (s *MemoryStore) GetRelatedMemories(ctx context.Context, memoryID string) (
 	if err != nil {
 		return nil, fmt.Errorf("postgres: GetRelatedMemories: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var ids []string
 	for rows.Next() {
@@ -1118,7 +1118,7 @@ func (s *MemoryStore) GetMemoriesByRelationType(ctx context.Context, memoryID st
 	if err != nil {
 		return nil, fmt.Errorf("postgres: GetMemoriesByRelationType: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var ids []string
 	for rows.Next() {
@@ -1305,7 +1305,7 @@ func (s *MemoryStore) GetMemoryEntities(ctx context.Context, memoryID string) ([
 	if err != nil {
 		return nil, fmt.Errorf("postgres: GetMemoryEntities: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var entities []*types.Entity
 	for rows.Next() {
@@ -1377,7 +1377,7 @@ func (s *MemoryStore) getEntityIDsForMemory(ctx context.Context, memoryID string
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var ids []string
 	for rows.Next() {
@@ -1401,7 +1401,7 @@ func (s *MemoryStore) getEntityNamesByIDs(ctx context.Context, ids []string) (ma
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	result := make(map[string]string, len(ids))
 	for rows.Next() {
@@ -1421,7 +1421,7 @@ func (s *MemoryStore) getMemoryIDsForEntity(ctx context.Context, entityID string
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var ids []string
 	for rows.Next() {
@@ -1468,7 +1468,7 @@ func (s *MemoryStore) getNeighbourEntities(ctx context.Context, frontier []strin
 	if err != nil {
 		return nil, nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	frontierSet := make(map[string]bool, len(frontier))
 	for _, id := range frontier {
@@ -1527,7 +1527,7 @@ func (s *MemoryStore) getMemoriesByIDs(ctx context.Context, ids []string) ([]typ
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var memories []types.Memory
 	for rows.Next() {

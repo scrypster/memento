@@ -329,7 +329,7 @@ func (m *Manager) UpdateConnection(ctx context.Context, name string, updatedConn
 	m.storesLock.Lock()
 	if store, exists := m.stores[name]; exists {
 		if m.ownedStores[name] {
-			store.Close()
+			_ = store.Close()
 		}
 		delete(m.stores, name)
 		delete(m.ownedStores, name)
@@ -357,7 +357,7 @@ func (m *Manager) DeleteConnection(ctx context.Context, name string) error {
 			m.storesLock.Lock()
 			if store, exists := m.stores[name]; exists {
 				if m.ownedStores[name] {
-					store.Close()
+					_ = store.Close()
 				}
 				delete(m.stores, name)
 				delete(m.ownedStores, name)
@@ -404,7 +404,7 @@ func (m *Manager) TestConnection(ctx context.Context, conn Connection) error {
 		if err != nil {
 			return fmt.Errorf("failed to connect to SQLite: %w", err)
 		}
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		// Try a simple query to verify the connection works
 		_, err = store.List(ctx, storage.ListOptions{Page: 1, Limit: 1})
@@ -437,7 +437,7 @@ func (m *Manager) TestConnection(ctx context.Context, conn Connection) error {
 		if err != nil {
 			return fmt.Errorf("failed to connect to PostgreSQL (DSN: %s): %w", sanitizeDSN(dsn), err)
 		}
-		defer store.Close()
+		defer func() { _ = store.Close() }()
 
 		// Try a simple query to verify the connection works
 		_, err = store.List(ctx, storage.ListOptions{Page: 1, Limit: 1})

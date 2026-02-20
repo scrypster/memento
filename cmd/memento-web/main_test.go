@@ -27,7 +27,7 @@ func TestMainServer_Routes(t *testing.T) {
 	tmpDir := t.TempDir()
 	store, err := sqlite.NewMemoryStore(tmpDir + "/test.db")
 	require.NoError(t, err)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Start server in goroutine
 	ctx, cancel := context.WithCancel(context.Background())
@@ -45,13 +45,13 @@ func TestMainServer_Routes(t *testing.T) {
 		// Test that server is listening
 		resp, err := http.Get("http://" + addr + "/")
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		// Test WebSocket endpoint exists
 		resp, err = http.Get("http://" + addr + "/ws")
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		// WebSocket upgrade fails via GET, but route exists (400 not 404)
 		assert.NotEqual(t, http.StatusNotFound, resp.StatusCode)
 
@@ -74,7 +74,7 @@ func TestMainServer_GracefulShutdown(t *testing.T) {
 	tmpDir := t.TempDir()
 	store, err := sqlite.NewMemoryStore(tmpDir + "/test.db")
 	require.NoError(t, err)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx, cancel := context.WithCancel(context.Background())
 

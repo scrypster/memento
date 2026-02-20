@@ -161,11 +161,7 @@ func (h *SystemConfigHandlers) AddCustomEntityType(w http.ResponseWriter, r *htt
 	}
 
 	// Add to custom types
-	newEntityType := EntityType{
-		Type:        req.Type,
-		Description: req.Description,
-		Icon:        req.Icon,
-	}
+	newEntityType := EntityType(req)
 	config.EntityTypes.Custom = append(config.EntityTypes.Custom, newEntityType)
 
 	// Save config
@@ -268,12 +264,7 @@ func (h *SystemConfigHandlers) AddCustomRelationshipType(w http.ResponseWriter, 
 	}
 
 	// Add to custom types
-	newRelationshipType := RelationshipType{
-		Type:          req.Type,
-		Description:   req.Description,
-		Bidirectional: req.Bidirectional,
-		Category:      req.Category,
-	}
+	newRelationshipType := RelationshipType(req)
 	config.RelationshipTypes.Custom = append(config.RelationshipTypes.Custom, newRelationshipType)
 
 	// Save config

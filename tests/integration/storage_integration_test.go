@@ -149,8 +149,10 @@ func TestStorage_UpdateWithConcurrency(t *testing.T) {
 
 	for i := 0; i < numUpdates; i++ {
 		go func(updateID int) {
-			mem.Tags = append(mem.Tags, genTag(updateID))
-			errors <- store.Update(ctx, mem)
+			localMem := *mem                                // copy the struct
+			localMem.Tags = append([]string{}, mem.Tags...) // copy the slice
+			localMem.Tags = append(localMem.Tags, genTag(updateID))
+			errors <- store.Update(ctx, &localMem)
 		}(i)
 	}
 

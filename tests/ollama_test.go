@@ -18,18 +18,18 @@ func mockOllamaServer() *httptest.Server {
 		switch r.URL.Path {
 		case "/api/generate":
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"response": "Test response from Ollama",
 				"done":     true,
 			})
 		case "/api/embed":
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"embeddings": [][]float32{{0.1, 0.2, 0.3, 0.4, 0.5}},
 			})
 		case "/api/tags":
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"models": []map[string]string{
 					{"name": "phi3:mini"},
 					{"name": "llama3:8b"},
@@ -37,7 +37,7 @@ func mockOllamaServer() *httptest.Server {
 			})
 		case "/api/version":
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"version": "0.1.0",
 			})
 		default:
@@ -51,7 +51,7 @@ func mockSlowOllamaServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(6 * time.Second) // Longer than the 5s timeout
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"response": "Too late",
 			"done":     true,
 		})
@@ -62,7 +62,7 @@ func mockSlowOllamaServer() *httptest.Server {
 func mockFailingOllamaServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal server error"))
+		_, _ = w.Write([]byte("Internal server error"))
 	}))
 }
 
@@ -70,7 +70,7 @@ func mockFailingOllamaServer() *httptest.Server {
 func mockInvalidJSONServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("{invalid json"))
+		_, _ = w.Write([]byte("{invalid json"))
 	}))
 }
 

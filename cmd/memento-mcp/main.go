@@ -83,7 +83,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to open database at %q: %v", dbPath, err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Set up a root context that is cancelled on SIGINT / SIGTERM.
 	ctx, cancel := context.WithCancel(context.Background())

@@ -75,11 +75,12 @@ func (h *IntegrationsHandler) GetConfig(w http.ResponseWriter, r *http.Request) 
 		// Which file? query param: ?file=mcp (default), ?file=skill, ?file=claude-md,
 		// or ?file=per-project-claude-md&connection=<name>
 		file := r.URL.Query().Get("file")
-		if file == "skill" {
+		switch file {
+		case "skill":
 			h.serveTemplate(w, "claude-code-skill.md.tmpl", "memento-skill.md", "text/markdown", vars)
-		} else if file == "claude-md" {
+		case "claude-md":
 			h.serveTemplate(w, "claude-md-snippet.md.tmpl", "memento-claude-md-snippet.md", "text/markdown", vars)
-		} else if file == "per-project-claude-md" {
+		case "per-project-claude-md":
 			connName := r.URL.Query().Get("connection")
 			if connName == "" {
 				http.Error(w, "connection query parameter is required", http.StatusBadRequest)
@@ -96,7 +97,7 @@ func (h *IntegrationsHandler) GetConfig(w http.ResponseWriter, r *http.Request) 
 			}
 			filename := fmt.Sprintf("memento-%s-claude-md.md", connName)
 			h.serveTemplate(w, "per-project-claude-md.md.tmpl", filename, "text/markdown", perProjectVars)
-		} else {
+		default:
 			h.serveTemplate(w, "claude-code-mcp.json.tmpl", "claude_code_mcp.json", "application/json", vars)
 		}
 
@@ -132,7 +133,7 @@ func (h *IntegrationsHandler) GetConfig(w http.ResponseWriter, r *http.Request) 
 		w.Header().Set("Content-Disposition", "attachment; filename=memento_mcp.json")
 		enc := json.NewEncoder(w)
 		enc.SetIndent("", "  ")
-		enc.Encode(cfg)
+		_ = enc.Encode(cfg)
 
 	default:
 		http.Error(w, fmt.Sprintf("unknown system %q", system), http.StatusNotFound)
@@ -230,5 +231,5 @@ func (h *IntegrationsHandler) serveTemplate(w http.ResponseWriter, tmplFile, dow
 
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", downloadName))
-	w.Write([]byte(result))
+	_, _ = w.Write([]byte(result))
 }

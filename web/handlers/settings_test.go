@@ -101,7 +101,7 @@ func TestSettingsHandlers_GetSettings(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			db := setupTestDB(t)
-			defer db.Close()
+			defer func() { _ = db.Close() }()
 
 			// Setup custom settings if needed
 			tt.setup(db, tt.connectionID)
@@ -202,7 +202,7 @@ func TestSettingsHandlers_UpdateEntityTypes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			db := setupTestDB(t)
-			defer db.Close()
+			defer func() { _ = db.Close() }()
 
 			settingsService := services.NewSettingsService(db)
 			handler := NewSettingsHandlers(settingsService)
@@ -237,7 +237,7 @@ func TestSettingsHandlers_UpdateEntityTypes(t *testing.T) {
 // TestSettingsHandlers_UpdateRelationshipTypes tests updating custom relationship types.
 func TestSettingsHandlers_UpdateRelationshipTypes(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	settingsService := services.NewSettingsService(db)
 	handler := NewSettingsHandlers(settingsService)
@@ -286,7 +286,7 @@ func TestSettingsHandlers_UpdateRelationshipTypes(t *testing.T) {
 // TestSettingsHandlers_UpdateMemoryTypes tests updating custom memory types.
 func TestSettingsHandlers_UpdateMemoryTypes(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	settingsService := services.NewSettingsService(db)
 	handler := NewSettingsHandlers(settingsService)
@@ -333,7 +333,7 @@ func TestSettingsHandlers_UpdateMemoryTypes(t *testing.T) {
 // TestSettingsHandlers_UpdateClassifications tests updating custom classification schemas.
 func TestSettingsHandlers_UpdateClassifications(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	settingsService := services.NewSettingsService(db)
 	handler := NewSettingsHandlers(settingsService)
@@ -389,7 +389,7 @@ func TestSettingsHandlers_UpdateClassifications(t *testing.T) {
 // TestSettingsHandlers_MissingConnectionID tests that handlers require connection ID.
 func TestSettingsHandlers_MissingConnectionID(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	settingsService := services.NewSettingsService(db)
 	handler := NewSettingsHandlers(settingsService)
@@ -427,7 +427,7 @@ func TestSettingsHandlers_MissingConnectionID(t *testing.T) {
 // TestSettingsHandlers_InvalidJSON tests handling of malformed JSON requests.
 func TestSettingsHandlers_InvalidJSON(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	settingsService := services.NewSettingsService(db)
 	handler := NewSettingsHandlers(settingsService)
@@ -453,7 +453,7 @@ func TestSettingsHandlers_InvalidJSON(t *testing.T) {
 // TestSettingsHandlers_PersistenceAcrossRequests tests that settings persist across multiple requests.
 func TestSettingsHandlers_PersistenceAcrossRequests(t *testing.T) {
 	db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	settingsService := services.NewSettingsService(db)
 	handler := NewSettingsHandlers(settingsService)

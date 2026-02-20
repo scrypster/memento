@@ -27,7 +27,7 @@ func (s *MemoryStore) RunMigrations(migrationsDir string) error {
 	if err != nil {
 		return fmt.Errorf("sqlite: failed to create migration manager: %w", err)
 	}
-	defer mgr.Close()
+	defer func() { _ = mgr.Close() }()
 
 	if err := mgr.Up(); err != nil {
 		return fmt.Errorf("sqlite: failed to run migrations: %w", err)
@@ -91,26 +91,26 @@ func openMemoryStore(dsn string) (*MemoryStore, error) {
 
 	// Enable WAL mode for better read concurrency (readers don't block writers).
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("failed to enable WAL mode: %w", err)
 	}
 
 	// Set busy timeout so that callers wait instead of getting an immediate
 	// SQLITE_BUSY error when the connection is held by another goroutine.
 	if _, err := db.Exec("PRAGMA busy_timeout = 5000"); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("failed to set busy timeout: %w", err)
 	}
 
 	// Enable foreign keys
 	if _, err := db.Exec("PRAGMA foreign_keys=ON"); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("failed to enable foreign keys: %w", err)
 	}
 
 	// Create schema
 	if _, err := db.Exec(Schema); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("failed to create schema: %w", err)
 	}
 
@@ -151,14 +151,14 @@ func (s *MemoryStore) Store(ctx context.Context, memory *types.Memory) error {
 		}
 	}
 
-	if memory.Tags != nil && len(memory.Tags) > 0 {
+	if len(memory.Tags) > 0 {
 		tagsJSON, err = json.Marshal(memory.Tags)
 		if err != nil {
 			return fmt.Errorf("failed to marshal tags: %w", err)
 		}
 	}
 
-	if memory.Keywords != nil && len(memory.Keywords) > 0 {
+	if len(memory.Keywords) > 0 {
 		keyPointsJSON, err = json.Marshal(memory.Keywords)
 		if err != nil {
 			return fmt.Errorf("failed to marshal keywords: %w", err)
@@ -592,7 +592,7 @@ func (s *MemoryStore) List(ctx context.Context, opts storage.ListOptions) (*stor
 	if err != nil {
 		return nil, fmt.Errorf("failed to list memories: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	// Scan results
 	var memories []types.Memory
@@ -1071,7 +1071,7 @@ func (s *MemoryStore) GetRelatedMemories(ctx context.Context, memoryID string) (
 	if err != nil {
 		return nil, fmt.Errorf("sqlite: GetRelatedMemories: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var ids []string
 	for rows.Next() {
@@ -1270,7 +1270,7 @@ func (s *MemoryStore) GetEvolutionChain(ctx context.Context, memoryID string) ([
 		if rows.Next() {
 			_ = rows.Scan(&nextID)
 		}
-		rows.Close()
+		_ = rows.Close()
 
 		if nextID == "" || visited[nextID] {
 			break
@@ -1319,7 +1319,7 @@ func (s *MemoryStore) GetMemoriesByRelationType(ctx context.Context, memoryID st
 	if err != nil {
 		return nil, fmt.Errorf("sqlite: GetMemoriesByRelationType: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var ids []string
 	for rows.Next() {
@@ -1364,7 +1364,7 @@ func nullableTime(t *time.Time) sql.NullTime {
 
 // nullableBytes converts a byte slice to sql.NullString.
 func nullableBytes(b []byte) sql.NullString {
-	if b == nil || len(b) == 0 {
+	if len(b) == 0 {
 		return sql.NullString{Valid: false}
 	}
 	return sql.NullString{String: string(b), Valid: true}

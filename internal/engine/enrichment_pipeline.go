@@ -431,11 +431,6 @@ func (p *ExtractionPipeline) linkEntityToMemory(ctx context.Context, memoryID, e
 	return nil
 }
 
-// validateEntity validates an extracted entity using system types only.
-func (p *ExtractionPipeline) validateEntity(entity llm.EntityResponse) error {
-	return p.validateEntityWithTypes(entity, nil)
-}
-
 // validateEntityWithTypes validates an extracted entity.
 // If allowedTypes is non-empty, validates against that list (system + custom).
 // Otherwise falls back to system types only.
@@ -463,11 +458,6 @@ func (p *ExtractionPipeline) validateEntityWithTypes(entity llm.EntityResponse, 
 		return fmt.Errorf("invalid confidence score: %f (must be 0.0-1.0)", entity.Confidence)
 	}
 	return nil
-}
-
-// validateRelationship validates an extracted relationship using system types only.
-func (p *ExtractionPipeline) validateRelationship(rel llm.RelationshipResponse) error {
-	return p.validateRelationshipWithTypes(rel, nil)
 }
 
 // validateRelationshipWithTypes validates an extracted relationship.

@@ -35,7 +35,7 @@ func TestBackupService_BackupNow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to insert test data: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	// Create backup service
 	service, err := backup.NewBackupService(backup.BackupConfig{
@@ -109,7 +109,7 @@ func TestBackupService_Verify(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	// Create backup service with verification enabled
 	service, err := backup.NewBackupService(backup.BackupConfig{
@@ -168,7 +168,7 @@ func TestBackupService_Retention(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	// Create backup service with strict retention policy
 	service, err := backup.NewBackupService(backup.BackupConfig{
@@ -209,7 +209,7 @@ func TestBackupService_Retention(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create test backup: %v", err)
 		}
-		testDB.Close()
+		_ = testDB.Close()
 
 		// Set modification time to simulate age
 		mtime := now.Add(-bf.age)
@@ -260,7 +260,7 @@ func TestBackupService_Schedule(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	// Create backup service with short interval for testing
 	service, err := backup.NewBackupService(backup.BackupConfig{
@@ -279,7 +279,7 @@ func TestBackupService_Schedule(t *testing.T) {
 
 	done := make(chan struct{})
 	go func() {
-		service.Start(ctx)
+		_ = service.Start(ctx)
 		close(done)
 	}()
 
@@ -345,7 +345,7 @@ func TestBackupService_RestoreBackup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to insert test data: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	// Create backup service
 	service, err := backup.NewBackupService(backup.BackupConfig{
@@ -374,7 +374,7 @@ func TestBackupService_RestoreBackup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to modify database: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	// Verify modification
 	db, err = sql.Open("sqlite", dbPath)
@@ -386,7 +386,7 @@ func TestBackupService_RestoreBackup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to query database: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 	if content != modifiedData {
 		t.Fatalf("Expected modified content %q, got %q", modifiedData, content)
 	}
@@ -406,7 +406,7 @@ func TestBackupService_RestoreBackup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to query restored database: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	if content != originalData {
 		t.Errorf("Expected original content %q after restore, got %q", originalData, content)
@@ -428,7 +428,7 @@ func TestBackupService_HealthCheck(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	// Create backup service
 	service, err := backup.NewBackupService(backup.BackupConfig{
@@ -512,7 +512,7 @@ func TestBackupService_DiskSpace(t *testing.T) {
 			t.Fatalf("Failed to insert test data: %v", err)
 		}
 	}
-	db.Close()
+	_ = db.Close()
 
 	// Create backup service
 	service, err := backup.NewBackupService(backup.BackupConfig{
@@ -579,7 +579,7 @@ func TestBackupService_ConcurrentBackups(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	// Create backup service
 	service, err := backup.NewBackupService(backup.BackupConfig{
@@ -650,7 +650,7 @@ func createTestDatabase(path string) (*sql.DB, error) {
 
 	// Enable WAL mode
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("failed to enable WAL mode: %w", err)
 	}
 
@@ -664,18 +664,10 @@ func createTestDatabase(path string) (*sql.DB, error) {
 		);
 	`
 	if _, err := db.Exec(schema); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("failed to create schema: %w", err)
 	}
 
 	return db, nil
 }
 
-// copyFile copies a file from src to dst.
-func copyFile(src, dst string) error {
-	data, err := os.ReadFile(src)
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(dst, data, 0644)
-}

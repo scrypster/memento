@@ -281,29 +281,27 @@ func truncateOutput(output string, maxLen int) string {
 func FormatTestResults(result *TestResult) string {
 	var sb strings.Builder
 
-	sb.WriteString(fmt.Sprintf("\n=== Test: %s ===\n", result.TestName))
-	sb.WriteString(fmt.Sprintf("Total Time: %.2fs\n", result.TotalTime.Seconds()))
-	sb.WriteString(fmt.Sprintf("Overall Status: %s\n", func() string {
-		if result.Success {
-			return "✅ PASS"
-		}
-		return "❌ FAIL"
-	}()))
+	fmt.Fprintf(&sb, "\n=== Test: %s ===\n", result.TestName)
+	fmt.Fprintf(&sb, "Total Time: %.2fs\n", result.TotalTime.Seconds())
+	overallStatus := "❌ FAIL"
+	if result.Success {
+		overallStatus = "✅ PASS"
+	}
+	fmt.Fprintf(&sb, "Overall Status: %s\n", overallStatus)
 
 	sb.WriteString("\nCalls:\n")
 	for i, cr := range result.Results {
-		sb.WriteString(fmt.Sprintf("\n%d. %s (%s)\n", i+1, cr.CallName, cr.Purpose))
-		sb.WriteString(fmt.Sprintf("   Status: %s\n", func() string {
-			if cr.ParsedOK {
-				return "✅ Parsed OK"
-			}
-			return "❌ Parse Error"
-		}()))
-		sb.WriteString(fmt.Sprintf("   Duration: %.2fs\n", cr.Duration.Seconds()))
-		if cr.ErrorMsg != "" {
-			sb.WriteString(fmt.Sprintf("   Error: %s\n", cr.ErrorMsg))
+		fmt.Fprintf(&sb, "\n%d. %s (%s)\n", i+1, cr.CallName, cr.Purpose)
+		callStatus := "❌ Parse Error"
+		if cr.ParsedOK {
+			callStatus = "✅ Parsed OK"
 		}
-		sb.WriteString(fmt.Sprintf("   Output: %s\n", cr.Output))
+		fmt.Fprintf(&sb, "   Status: %s\n", callStatus)
+		fmt.Fprintf(&sb, "   Duration: %.2fs\n", cr.Duration.Seconds())
+		if cr.ErrorMsg != "" {
+			fmt.Fprintf(&sb, "   Error: %s\n", cr.ErrorMsg)
+		}
+		fmt.Fprintf(&sb, "   Output: %s\n", cr.Output)
 	}
 
 	return sb.String()

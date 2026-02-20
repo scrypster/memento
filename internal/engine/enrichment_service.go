@@ -5,10 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/scrypster/memento/internal/llm"
-	"github.com/scrypster/memento/pkg/types"
 )
 
 // EnrichmentService handles LLM-powered enrichment of memories.
@@ -111,112 +109,6 @@ func (s *EnrichmentService) EnrichMemory(ctx context.Context, memoryID, content 
 
 	log.Printf("Enrichment complete for memory %s: %d entities, %d relationships",
 		memoryID, len(pipelineResult.Entities), len(pipelineResult.Relationships))
-	return nil
-}
-
-// extractEntities uses LLM to extract entities from content
-func (s *EnrichmentService) extractEntities(ctx context.Context, content string) ([]llm.EntityResponse, error) {
-	prompt := llm.EntityExtractionPrompt(content)
-
-	response, err := s.llmClient.Complete(ctx, prompt)
-	if err != nil {
-		return nil, fmt.Errorf("LLM completion failed: %w", err)
-	}
-
-	entities, err := llm.ParseEntityResponse(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse entity response: %w", err)
-	}
-
-	return entities, nil
-}
-
-// extractRelationships uses LLM to extract relationships from content
-func (s *EnrichmentService) extractRelationships(ctx context.Context, content string, entities []types.Entity) ([]llm.RelationshipResponse, error) {
-	prompt := llm.RelationshipExtractionPrompt(content, entities)
-
-	response, err := s.llmClient.Complete(ctx, prompt)
-	if err != nil {
-		return nil, fmt.Errorf("LLM completion failed: %w", err)
-	}
-
-	relationships, err := llm.ParseRelationshipResponse(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse relationship response: %w", err)
-	}
-
-	return relationships, nil
-}
-
-// storeEntity stores an entity in the database (upsert)
-func (s *EnrichmentService) storeEntity(ctx context.Context, entity llm.EntityResponse) (string, error) {
-	// Generate entity ID from name and type
-	entityID := fmt.Sprintf("ent:%s:%s", entity.Type, hashForEntity(entity.Name))
-
-	query := `
-		INSERT INTO entities (id, name, type, description, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?)
-		ON CONFLICT(name, type) DO UPDATE SET
-			description = excluded.description,
-			updated_at = excluded.updated_at
-		RETURNING id
-	`
-
-	now := time.Now()
-	var returnedID string
-	err := s.db.QueryRowContext(ctx, query,
-		entityID, entity.Name, entity.Type, entity.Description, now, now,
-	).Scan(&returnedID)
-
-	if err != nil {
-		return "", fmt.Errorf("failed to store entity: %w", err)
-	}
-
-	return returnedID, nil
-}
-
-// storeRelationship stores a relationship in the database
-func (s *EnrichmentService) storeRelationship(ctx context.Context, sourceID, targetID, relType string, confidence float64) error {
-	// Generate relationship ID
-	relID := fmt.Sprintf("rel:%s:%s:%s", sourceID, targetID, relType)
-
-	query := `
-		INSERT INTO relationships (id, source_id, target_id, type, weight, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
-		ON CONFLICT(source_id, target_id, type) DO UPDATE SET
-			weight = excluded.weight,
-			updated_at = excluded.updated_at
-	`
-
-	now := time.Now()
-	_, err := s.db.ExecContext(ctx, query,
-		relID, sourceID, targetID, relType, confidence, now, now,
-	)
-
-	if err != nil {
-		return fmt.Errorf("failed to store relationship: %w", err)
-	}
-
-	return nil
-}
-
-// linkEntityToMemory creates a memory-entity association
-func (s *EnrichmentService) linkEntityToMemory(ctx context.Context, memoryID, entityID string, confidence float64) error {
-	query := `
-		INSERT INTO memory_entities (memory_id, entity_id, frequency, confidence, created_at)
-		VALUES (?, ?, 1, ?, ?)
-		ON CONFLICT(memory_id, entity_id) DO UPDATE SET
-			frequency = frequency + 1,
-			confidence = MAX(confidence, excluded.confidence)
-	`
-
-	now := time.Now()
-	_, err := s.db.ExecContext(ctx, query, memoryID, entityID, confidence, now)
-
-	if err != nil {
-		return fmt.Errorf("failed to link entity to memory: %w", err)
-	}
-
 	return nil
 }
 

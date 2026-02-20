@@ -309,9 +309,7 @@ func (s *Server) StoreMemory(ctx context.Context, args StoreMemoryArgs) (*StoreM
 		result.Message = "Memory stored successfully. Enrichment will happen asynchronously."
 		// Queue enrichment immediately if engine is available (only for new memories).
 		if s.engine != nil {
-			if !s.engine.QueueEnrichmentForMemory(memID, args.Content) {
-				// Queue full — recovery on next restart will pick it up
-			}
+			_ = s.engine.QueueEnrichmentForMemory(memID, args.Content) // queue full is OK — recovery on next restart will pick it up
 		}
 
 		// Onboarding hint: if this is the very first memory, guide the user.

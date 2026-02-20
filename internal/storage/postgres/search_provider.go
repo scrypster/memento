@@ -63,7 +63,7 @@ func (s *MemoryStore) FullTextSearch(ctx context.Context, opts storage.SearchOpt
 	if err != nil {
 		return nil, fmt.Errorf("postgres: FullTextSearch query %q: %w", opts.Query, err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	memories, err := scanMemoryRows(rows)
 	if err != nil {
@@ -157,7 +157,7 @@ func (s *MemoryStore) VectorSearch(ctx context.Context, query []float64, opts st
 			SortOrder: "desc",
 		})
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	memories, err := scanMemoryRows(rows)
 	if err != nil {

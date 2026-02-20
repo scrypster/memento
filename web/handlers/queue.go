@@ -94,7 +94,7 @@ func (h *QueueHandler) GetQueue(w http.ResponseWriter, r *http.Request) {
 		`
 		rows, err := db.QueryContext(ctx, statusQuery)
 		if err == nil {
-			defer rows.Close()
+			defer func() { _ = rows.Close() }()
 			for rows.Next() {
 				var status string
 				var count int
@@ -134,7 +134,7 @@ func (h *QueueHandler) GetQueue(w http.ResponseWriter, r *http.Request) {
 		`
 		itemRows, err := db.QueryContext(ctx, itemsQuery)
 		if err == nil {
-			defer itemRows.Close()
+			defer func() { _ = itemRows.Close() }()
 			for itemRows.Next() {
 				var item QueueItemResponse
 				var enrichedAt *time.Time

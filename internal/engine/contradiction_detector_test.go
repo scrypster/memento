@@ -16,14 +16,12 @@ import (
 type mockContradictionStore struct {
 	memories      map[string]*types.Memory
 	relationships map[string][]*types.Relationship
-	entities      map[string]*types.Entity
 }
 
 func newMockContradictionStore() *mockContradictionStore {
 	return &mockContradictionStore{
 		memories:      make(map[string]*types.Memory),
 		relationships: make(map[string][]*types.Relationship),
-		entities:      make(map[string]*types.Entity),
 	}
 }
 
@@ -156,24 +154,6 @@ func (m *mockContradictionStore) Close() error {
 // addRelationship adds a relationship to the mock store
 func (m *mockContradictionStore) addRelationship(rel *types.Relationship) {
 	m.relationships[rel.ID] = append(m.relationships[rel.ID], rel)
-}
-
-// getRelationshipsForEntity returns all relationships where the entity is the source
-func (m *mockContradictionStore) getRelationshipsForEntity(entityID string, relType string) []*types.Relationship {
-	var rels []*types.Relationship
-	for _, relList := range m.relationships {
-		for _, rel := range relList {
-			if rel.FromID == entityID && rel.Type == relType {
-				rels = append(rels, rel)
-			}
-		}
-	}
-	return rels
-}
-
-// addEntity adds an entity to the mock store
-func (m *mockContradictionStore) addEntity(entity *types.Entity) {
-	m.entities[entity.ID] = entity
 }
 
 // TestDetectConflictingRelationships tests detection of conflicting single-valued relationships

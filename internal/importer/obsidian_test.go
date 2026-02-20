@@ -19,7 +19,7 @@ func TestObsidianImport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	imp := importer.NewObsidianImporter(store)
 	ctx := context.Background()

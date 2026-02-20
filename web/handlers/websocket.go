@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"nhooyr.io/websocket"
+	"nhooyr.io/websocket" //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
 )
 
 // WebSocketHub manages WebSocket connections and broadcasts messages.
@@ -31,7 +31,7 @@ type clientInterface interface {
 // Client represents a WebSocket connection.
 type Client struct {
 	hub  *WebSocketHub
-	conn *websocket.Conn
+	conn *websocket.Conn //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
 	send chan []byte
 }
 
@@ -41,7 +41,7 @@ func (c *Client) getSendChannel() chan []byte {
 
 func (c *Client) close() {
 	if c.conn != nil {
-		c.conn.Close(websocket.StatusNormalClosure, "")
+		_ = c.conn.Close(websocket.StatusNormalClosure, "") //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
 	}
 }
 
@@ -153,7 +153,7 @@ func (h *WebSocketHub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Upgrade connection
-	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{ //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
 		OriginPatterns: []string{"localhost:6363", "127.0.0.1:6363"},
 	})
 	if err != nil {
@@ -178,25 +178,17 @@ func (h *WebSocketHub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (c *Client) writePump() {
 	defer func() {
 		c.hub.Unregister(c)
-		c.conn.Close(websocket.StatusNormalClosure, "")
+		_ = c.conn.Close(websocket.StatusNormalClosure, "") //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
 	}()
 
-	for {
-		select {
-		case message, ok := <-c.send:
-			if !ok {
-				// Channel closed
-				return
-			}
+	for message := range c.send {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		err := c.conn.Write(ctx, websocket.MessageText, message) //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
+		cancel()
 
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			err := c.conn.Write(ctx, websocket.MessageText, message)
-			cancel()
-
-			if err != nil {
-				log.Printf("ERROR: WebSocket write failed: %v", err)
-				return
-			}
+		if err != nil {
+			log.Printf("ERROR: WebSocket write failed: %v", err)
+			return
 		}
 	}
 }
@@ -206,11 +198,11 @@ func (c *Client) writePump() {
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.Unregister(c)
-		c.conn.Close(websocket.StatusNormalClosure, "")
+		_ = c.conn.Close(websocket.StatusNormalClosure, "") //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
 	}()
 
 	for {
-		_, _, err := c.conn.Read(context.Background())
+		_, _, err := c.conn.Read(context.Background()) //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
 		if err != nil {
 			// Connection closed
 			return

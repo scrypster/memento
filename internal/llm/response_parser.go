@@ -106,9 +106,10 @@ func extractJSON(text string) string {
 
 		// Only count braces outside of strings
 		if !inString {
-			if char == '{' {
+			switch char {
+			case '{':
 				braceCount++
-			} else if char == '}' {
+			case '}':
 				braceCount--
 				if braceCount == 0 {
 					// Found complete JSON object, return it

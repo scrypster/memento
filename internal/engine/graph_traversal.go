@@ -285,12 +285,3 @@ func (g *GraphTraversal) getNeighbors(ctx context.Context, memoryID string) ([]s
 	return g.memoryStore.GetRelatedMemories(ctx, memoryID)
 }
 
-// verifyMemoryExists checks if a memory exists in the store.
-// Returns an error if the memory is not found.
-func (g *GraphTraversal) verifyMemoryExists(ctx context.Context, memoryID string) error {
-	_, err := g.memoryStore.Get(ctx, memoryID)
-	if err != nil {
-		return fmt.Errorf("memory %s not found: %w", memoryID, err)
-	}
-	return nil
-}

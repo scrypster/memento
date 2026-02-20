@@ -189,7 +189,7 @@ func (s *MemoryStore) GetMemoryEntities(ctx context.Context, memoryID string) ([
 	if err != nil {
 		return nil, fmt.Errorf("sqlite: GetMemoryEntities: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var entities []*types.Entity
 	for rows.Next() {
@@ -228,7 +228,7 @@ func (s *MemoryStore) getEntityNamesByIDs(ctx context.Context, db *sql.DB, ids [
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	result := make(map[string]string, len(ids))
 	for rows.Next() {
@@ -248,7 +248,7 @@ func (s *MemoryStore) getEntityIDsForMemory(ctx context.Context, db *sql.DB, mem
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var ids []string
 	for rows.Next() {
@@ -295,7 +295,7 @@ func (s *MemoryStore) getNeighbourEntities(ctx context.Context, db *sql.DB, fron
 	if err != nil {
 		return nil, nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	// Build a set of frontier IDs for quick lookup.
 	frontierSet := make(map[string]bool, len(frontier))
@@ -336,7 +336,7 @@ func (s *MemoryStore) getMemoryIDsForEntity(ctx context.Context, db *sql.DB, ent
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var ids []string
 	for rows.Next() {
@@ -382,7 +382,7 @@ func (s *MemoryStore) getMemoriesByIDs(ctx context.Context, ids []string) ([]typ
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var memories []types.Memory
 	for rows.Next() {

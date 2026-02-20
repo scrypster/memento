@@ -18,7 +18,7 @@ func TestEnrichmentService_GenerateEmbeddings(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Create embedding provider
 	embeddingProvider := sqlite.NewEmbeddingProvider(store.GetDB())
@@ -80,7 +80,7 @@ func TestEnrichmentService_WithoutEmbeddings(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Create Ollama client
 	ollamaClient := llm.NewOllamaClient(llm.OllamaConfig{
@@ -122,7 +122,7 @@ func TestMemoryEngine_WithEmbeddingProvider(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Create embedding provider
 	embeddingProvider := sqlite.NewEmbeddingProvider(store.GetDB())
@@ -155,7 +155,7 @@ func TestMemoryEngine_WithEmbeddingProvider(t *testing.T) {
 	if err := eng.Start(ctx); err != nil {
 		t.Fatalf("Failed to start engine: %v", err)
 	}
-	defer eng.Shutdown(ctx)
+	defer func() { _ = eng.Shutdown(ctx) }()
 
 	t.Logf("Memory engine with embedding support created and started successfully")
 }
@@ -170,7 +170,7 @@ func TestEmbeddingProvider_Interface(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	embeddingProvider := sqlite.NewEmbeddingProvider(store.GetDB())
 

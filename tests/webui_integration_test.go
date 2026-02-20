@@ -25,7 +25,7 @@ import (
 	"github.com/scrypster/memento/internal/storage/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"nhooyr.io/websocket"
+	"nhooyr.io/websocket" //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
 )
 
 func TestWebUI_FullWorkflow(t *testing.T) {
@@ -46,7 +46,7 @@ func TestWebUI_FullWorkflow(t *testing.T) {
 
 	store, err := sqlite.NewMemoryStore(tmpDir + "/test.db")
 	require.NoError(t, err)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -72,7 +72,7 @@ func TestWebUI_FullWorkflow(t *testing.T) {
 	// Test 1: Index page loads
 	resp, err := http.Get(baseURL + "/")
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Contains(t, resp.Header.Get("Content-Type"), "text/html")
 
@@ -84,9 +84,9 @@ func TestWebUI_FullWorkflow(t *testing.T) {
 	wsCtx, wsCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer wsCancel()
 
-	conn, _, err := websocket.Dial(wsCtx, wsURL, nil)
+	conn, _, err := websocket.Dial(wsCtx, wsURL, nil) //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
 	require.NoError(t, err)
-	defer conn.Close(websocket.StatusNormalClosure, "test complete")
+	defer func() { _ = conn.Close(websocket.StatusNormalClosure, "test complete") }() //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
 
 	// Test 3: Create memory via API
 	memoryJSON := `{"content":"Test memory for integration test","source":"integration_test"}`
@@ -96,7 +96,7 @@ func TestWebUI_FullWorkflow(t *testing.T) {
 		strings.NewReader(memoryJSON),
 	)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
 	var created map[string]interface{}
@@ -107,7 +107,7 @@ func TestWebUI_FullWorkflow(t *testing.T) {
 	// Test 4: List memories
 	resp, err = http.Get(baseURL + "/api/memories")
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var result storage.PaginatedResult[map[string]interface{}]
@@ -134,7 +134,7 @@ func TestWebUI_SecurityValidation(t *testing.T) {
 
 	store, err := sqlite.NewMemoryStore(tmpDir + "/test.db")
 	require.NoError(t, err)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -158,7 +158,7 @@ func TestWebUI_SecurityValidation(t *testing.T) {
 	// Test 1: Unauthorized request fails
 	resp, err := http.Get(baseURL + "/api/memories")
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
 	// Test 2: Authorized request succeeds
@@ -168,7 +168,7 @@ func TestWebUI_SecurityValidation(t *testing.T) {
 
 	resp, err = http.DefaultClient.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// Test 3: WebSocket with invalid origin fails
@@ -176,7 +176,7 @@ func TestWebUI_SecurityValidation(t *testing.T) {
 	wsCtx, wsCancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer wsCancel()
 
-	_, resp, err = websocket.Dial(wsCtx, wsURL, &websocket.DialOptions{
+	_, resp, err = websocket.Dial(wsCtx, wsURL, &websocket.DialOptions{ //nolint:staticcheck // TODO: migrate to github.com/coder/websocket
 		HTTPHeader: http.Header{
 			"Origin": []string{"http://evil.com:9999"},
 		},
@@ -185,7 +185,7 @@ func TestWebUI_SecurityValidation(t *testing.T) {
 	assert.Error(t, err)
 	if resp != nil {
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
-		resp.Body.Close()
+		_ = resp.Body.Close()
 	}
 }
 
@@ -206,7 +206,7 @@ func TestWebUI_RateLimiting(t *testing.T) {
 
 	store, err := sqlite.NewMemoryStore(tmpDir + "/test.db")
 	require.NoError(t, err)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -235,10 +235,10 @@ func TestWebUI_RateLimiting(t *testing.T) {
 
 		if resp.StatusCode == http.StatusTooManyRequests {
 			rateLimited = true
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			break
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 	}
 
 	assert.True(t, rateLimited, "Expected to hit rate limit after 20 requests")
@@ -277,7 +277,7 @@ func TestWebUI_AssetVerification(t *testing.T) {
 
 	store, err := sqlite.NewMemoryStore(tmpDir + "/test.db")
 	require.NoError(t, err)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -301,14 +301,14 @@ func TestWebUI_AssetVerification(t *testing.T) {
 	// Test Alpine.js HTTP access
 	resp, err := http.Get(baseURL + "/static/vendor/alpine-3.14.9.min.js")
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Contains(t, resp.Header.Get("Content-Type"), "javascript")
 
 	// Test CSS bundle HTTP access
 	resp, err = http.Get(baseURL + "/static/dist/assets/main.css")
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Contains(t, resp.Header.Get("Content-Type"), "css")
 }
@@ -331,7 +331,7 @@ func TestWebUI_CRUD_Operations(t *testing.T) {
 
 	store, err := sqlite.NewMemoryStore(tmpDir + "/test.db")
 	require.NoError(t, err)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -360,7 +360,7 @@ func TestWebUI_CRUD_Operations(t *testing.T) {
 		strings.NewReader(memoryJSON),
 	)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	require.Equal(t, http.StatusCreated, resp.StatusCode)
 
 	var created map[string]interface{}
@@ -372,7 +372,7 @@ func TestWebUI_CRUD_Operations(t *testing.T) {
 	// Test 2: Get the memory
 	resp, err = http.Get(baseURL + "/api/memories/" + memoryID)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var retrieved map[string]interface{}
@@ -389,11 +389,11 @@ func TestWebUI_CRUD_Operations(t *testing.T) {
 
 	resp, err = http.DefaultClient.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		var errResp map[string]interface{}
-		json.NewDecoder(resp.Body).Decode(&errResp)
+		_ = json.NewDecoder(resp.Body).Decode(&errResp)
 		t.Logf("Update error response (status %d): %+v", resp.StatusCode, errResp)
 	}
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -406,7 +406,7 @@ func TestWebUI_CRUD_Operations(t *testing.T) {
 	// Test 4: List memories (should have 1)
 	resp, err = http.Get(baseURL + "/api/memories")
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var result storage.PaginatedResult[map[string]interface{}]
@@ -420,19 +420,19 @@ func TestWebUI_CRUD_Operations(t *testing.T) {
 
 	resp, err = http.DefaultClient.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	require.Equal(t, http.StatusNoContent, resp.StatusCode)
 
 	// Test 6: Verify deletion (should be 404)
 	resp, err = http.Get(baseURL + "/api/memories/" + memoryID)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 
 	// Test 7: List memories (should be empty)
 	resp, err = http.Get(baseURL + "/api/memories")
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	err = json.NewDecoder(resp.Body).Decode(&result)

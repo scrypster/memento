@@ -88,7 +88,7 @@ func TestCircuitBreakerHalfOpen(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		cb.Execute(ctx, failFunc)
+		_, _ = cb.Execute(ctx, failFunc)
 	}
 
 	// Verify it's open
@@ -248,9 +248,9 @@ func TestCircuitBreakerMetrics(t *testing.T) {
 	}
 
 	// Execute some successful and failed requests
-	cb.Execute(ctx, successFunc)
-	cb.Execute(ctx, successFunc)
-	cb.Execute(ctx, failFunc)
+	_, _ = cb.Execute(ctx, successFunc)
+	_, _ = cb.Execute(ctx, successFunc)
+	_, _ = cb.Execute(ctx, failFunc)
 
 	metrics := cb.Metrics()
 

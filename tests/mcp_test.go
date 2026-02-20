@@ -15,7 +15,7 @@ import (
 func TestMCPServer_StoreMemory(t *testing.T) {
 	ctx := context.Background()
 	store := setupTestStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	server := mcp.NewServer(store)
 
@@ -81,7 +81,7 @@ func TestMCPServer_StoreMemory(t *testing.T) {
 func TestMCPServer_RecallMemory(t *testing.T) {
 	ctx := context.Background()
 	store := setupTestStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	server := mcp.NewServer(store)
 
@@ -132,7 +132,7 @@ func TestMCPServer_RecallMemory(t *testing.T) {
 func TestMCPServer_RecallMemory_NotFound(t *testing.T) {
 	ctx := context.Background()
 	store := setupTestStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	server := mcp.NewServer(store)
 
@@ -158,7 +158,7 @@ func TestMCPServer_RecallMemory_NotFound(t *testing.T) {
 func TestMCPServer_FindRelated(t *testing.T) {
 	ctx := context.Background()
 	store := setupTestStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	server := mcp.NewServer(store)
 
@@ -227,7 +227,7 @@ func TestMCPServer_FindRelated(t *testing.T) {
 func TestMCPServer_RetryEnrichment(t *testing.T) {
 	ctx := context.Background()
 	store := setupTestStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	server := mcp.NewServer(store)
 
@@ -289,7 +289,7 @@ func TestMCPServer_RetryEnrichment(t *testing.T) {
 func TestMCPServer_ExplainReasoning(t *testing.T) {
 	ctx := context.Background()
 	store := setupTestStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	server := mcp.NewServer(store)
 
@@ -326,7 +326,7 @@ func TestMCPServer_ExplainReasoning(t *testing.T) {
 func TestMCPProtocol_Compliance(t *testing.T) {
 	ctx := context.Background()
 	store := setupTestStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	server := mcp.NewServer(store)
 
@@ -384,7 +384,7 @@ func TestMCPProtocol_Compliance(t *testing.T) {
 func TestMCPServer_ErrorHandling(t *testing.T) {
 	ctx := context.Background()
 	store := setupTestStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	server := mcp.NewServer(store)
 

@@ -69,7 +69,7 @@ func (s *MemoryStore) FullTextSearch(ctx context.Context, opts storage.SearchOpt
 		// Wrap the error with enough context for callers to diagnose.
 		return nil, fmt.Errorf("sqlite: FullTextSearch MATCH %q: %w", opts.Query, err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	memories, err := scanMemories(rows)
 	if err != nil {
@@ -144,7 +144,7 @@ func (s *MemoryStore) VectorSearch(ctx context.Context, query []float64, opts st
 	if err != nil {
 		return nil, fmt.Errorf("failed to load embeddings: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	type scored struct {
 		memoryID string

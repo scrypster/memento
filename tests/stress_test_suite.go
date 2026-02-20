@@ -169,17 +169,17 @@ func generateDenseContent(size ContentSize) string {
 
 	// Generate relationships between all entities
 	for i := 0; i < len(names)-1; i++ {
-		sb.WriteString(fmt.Sprintf("%s works at %s on %s using %s. ",
-			names[i], companies[i%len(companies)], projects[i%len(projects)], tools[i%len(tools)]))
+		fmt.Fprintf(&sb, "%s works at %s on %s using %s. ",
+			names[i], companies[i%len(companies)], projects[i%len(projects)], tools[i%len(tools)])
 
 		if i%3 == 0 {
-			sb.WriteString(fmt.Sprintf("%s and %s are colleagues. ", names[i], names[i+1]))
+			fmt.Fprintf(&sb, "%s and %s are colleagues. ", names[i], names[i+1])
 		}
 		if i%4 == 0 {
-			sb.WriteString(fmt.Sprintf("%s reports to %s. ", names[i], names[(i+1)%len(names)]))
+			fmt.Fprintf(&sb, "%s reports to %s. ", names[i], names[(i+1)%len(names)])
 		}
 		if i%5 == 0 {
-			sb.WriteString(fmt.Sprintf("%s uses %s for development. ", names[i], tools[i%len(tools)]))
+			fmt.Fprintf(&sb, "%s uses %s for development. ", names[i], tools[i%len(tools)])
 		}
 	}
 
@@ -339,8 +339,8 @@ func NewTestEngine(t *testing.T) (*engine.MemoryEngine, func()) {
 	// t.TempDir() is automatically cleaned up by the test framework
 	cleanup := func() {
 		ctx := context.Background()
-		eng.Shutdown(ctx)
-		store.Close()
+		_ = eng.Shutdown(ctx)
+		_ = store.Close()
 	}
 
 	return eng, cleanup

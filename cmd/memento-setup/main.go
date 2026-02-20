@@ -113,7 +113,7 @@ func runVerify() {
 		// Check if writable
 		testFile := filepath.Join(dataDir, ".memento-write-test")
 		if err := os.WriteFile(testFile, []byte("test"), 0644); err == nil {
-			os.Remove(testFile)
+			_ = os.Remove(testFile)
 			dataDirWritable = true
 		}
 	}
@@ -203,9 +203,9 @@ func runDockerSetup() {
 
 	// Create config and data directories
 	configDir := filepath.Join(projectDir, "config")
-	os.MkdirAll(configDir, 0755)
+	_ = os.MkdirAll(configDir, 0755)
 	dataDir := filepath.Join(projectDir, "data")
-	os.MkdirAll(dataDir, 0755)
+	_ = os.MkdirAll(dataDir, 0755)
 
 	// Build connections.json
 	conn := connections.Connection{
@@ -307,8 +307,8 @@ func runLocalSetup() {
 	projectDir, _ := os.Getwd()
 	configDir := filepath.Join(projectDir, "config")
 	dataDir := filepath.Join(projectDir, "data")
-	os.MkdirAll(configDir, 0755)
-	os.MkdirAll(dataDir, 0755)
+	_ = os.MkdirAll(configDir, 0755)
+	_ = os.MkdirAll(dataDir, 0755)
 
 	// Create connections.json
 	dbPath := filepath.Join(dataDir, "memento.db")

@@ -333,7 +333,8 @@ func (cd *ContradictionDetector) detectTemporalImpossibilities(
 			}
 
 			// Check for contradictions based on temporal order
-			if temporalOrder == "before" {
+			switch temporalOrder {
+			case "before":
 				// FromID should happen before ToID
 				// So fromMem.Timestamp should be <= toMem.Timestamp
 				if fromMem.Timestamp.After(toMem.Timestamp) {
@@ -347,7 +348,7 @@ func (cd *ContradictionDetector) detectTemporalImpossibilities(
 						contradictions = append(contradictions, contradiction)
 					}
 				}
-			} else if temporalOrder == "after" {
+			case "after":
 				// FromID should happen after ToID
 				if fromMem.Timestamp.Before(toMem.Timestamp) {
 					if memoryID == "" || contains(rel.Evidence, memoryID) {

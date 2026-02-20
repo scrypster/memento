@@ -17,7 +17,7 @@ func TestSQLiteMemoryStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx := context.Background()
 
@@ -251,7 +251,7 @@ func TestMemoryStorePagination(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx := context.Background()
 
@@ -426,7 +426,7 @@ func TestMemoryStoreIdempotency(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx := context.Background()
 
@@ -487,7 +487,7 @@ func TestEnrichmentStatusUpdates(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx := context.Background()
 

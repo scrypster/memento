@@ -87,7 +87,7 @@ func ExampleCircuitBreaker_Metrics() {
 	ctx := context.Background()
 
 	// Execute some requests
-	cb.Execute(ctx, func() (interface{}, error) {
+	_, _ = cb.Execute(ctx, func() (interface{}, error) {
 		return "success", nil
 	})
 

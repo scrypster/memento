@@ -13,7 +13,7 @@ import (
 func TestMCPIntegration_FullWorkflow(t *testing.T) {
 	ctx := context.Background()
 	store := setupTestStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	server := mcp.NewServer(store)
 
@@ -181,7 +181,7 @@ func TestMCPIntegration_FullWorkflow(t *testing.T) {
 func TestMCPIntegration_RetryWorkflow(t *testing.T) {
 	ctx := context.Background()
 	store := setupTestStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	server := mcp.NewServer(store)
 
@@ -259,7 +259,7 @@ func TestMCPIntegration_RetryWorkflow(t *testing.T) {
 func TestMCPIntegration_ErrorResponses(t *testing.T) {
 	ctx := context.Background()
 	store := setupTestStore(t)
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	server := mcp.NewServer(store)
 

@@ -17,7 +17,7 @@ COPY scripts/download-vendor-assets.sh scripts/
 RUN chmod +x scripts/download-vendor-assets.sh && ./scripts/download-vendor-assets.sh
 
 # ---- Go build stage ----
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download

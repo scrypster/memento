@@ -17,7 +17,7 @@ func TestOllamaIntegration_EntityExtraction(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/api/generate" {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"response": `{
 					"entities": [
 						{
@@ -87,7 +87,7 @@ func TestOllamaIntegration_WithChunking(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/api/generate" {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"response": `{"entities": []}`,
 				"done":     true,
 			})
@@ -150,7 +150,7 @@ func TestOllamaIntegration_CircuitBreakerRecovery(t *testing.T) {
 		}
 		// After circuit opens and timeout, requests succeed
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"response": "Success after recovery",
 			"done":     true,
 		})
@@ -194,7 +194,7 @@ func TestOllamaIntegration_EmbeddingWorkflow(t *testing.T) {
 			for i := range embedding {
 				embedding[i] = float32(i) * 0.001
 			}
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"embeddings": [][]float32{embedding},
 			})
 		}
@@ -234,7 +234,7 @@ func TestOllamaIntegration_MultipleRequests(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestCount++
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"response": "Success",
 			"done":     true,
 		})
@@ -272,7 +272,7 @@ func TestOllamaIntegration_ModelListing(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/api/tags" {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"models": []map[string]interface{}{
 					{"name": "phi3:mini", "size": 2200000000},
 					{"name": "llama3:8b", "size": 4700000000},
@@ -315,7 +315,7 @@ func TestOllamaIntegration_HealthCheckMonitoring(t *testing.T) {
 		if r.URL.Path == "/api/version" {
 			healthChecks++
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"version": "0.1.0",
 			})
 		}

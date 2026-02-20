@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/scrypster/memento/internal/connections"
@@ -61,14 +62,12 @@ func (h *StatsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 
 		// Count entities
 		if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM entities").Scan(&entities); err != nil {
-			// Log error but don't fail the request
-			// respondError(w, http.StatusInternalServerError, "failed to count entities", err)
-			// return
+			log.Printf("stats: failed to count entities: %v", err)
 		}
 
 		// Count relationships
 		if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM relationships").Scan(&relationships); err != nil {
-			// Log error but don't fail the request
+			log.Printf("stats: failed to count relationships: %v", err)
 		}
 	}
 

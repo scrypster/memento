@@ -223,7 +223,7 @@ func (s *BackupService) RestoreBackup(ctx context.Context, backupPath string) er
 		}
 		defer func() {
 			// Clean up temp backup on success
-			os.Remove(tempBackup)
+			_ = os.Remove(tempBackup)
 		}()
 	}
 

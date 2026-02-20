@@ -1349,7 +1349,7 @@ func TestHandleRequest_GetSessionContext(t *testing.T) {
 func TestForgetMemory_SoftDelete(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1376,7 +1376,7 @@ func TestForgetMemory_SoftDelete(t *testing.T) {
 func TestForgetMemory_HardDelete(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1403,7 +1403,7 @@ func TestForgetMemory_HardDelete(t *testing.T) {
 func TestEvolveMemory_CreatesNewVersionAndSupersedes(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1448,7 +1448,7 @@ func TestEvolveMemory_CreatesNewVersionAndSupersedes(t *testing.T) {
 func TestStoreMemory_DeduplicationViaAPI(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1479,7 +1479,7 @@ func TestStoreMemory_DeduplicationViaAPI(t *testing.T) {
 func TestConsolidateMemories_ByIDs(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1514,7 +1514,7 @@ func TestConsolidateMemories_ByIDs(t *testing.T) {
 func TestConsolidateMemories_RequiresMinTwo(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1533,7 +1533,7 @@ func TestConsolidateMemories_RequiresMinTwo(t *testing.T) {
 func TestConsolidateMemories_RequiresIDsOrQuery(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1549,7 +1549,7 @@ func TestConsolidateMemories_RequiresIDsOrQuery(t *testing.T) {
 func TestConsolidateMemories_CollectsTags(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1585,7 +1585,7 @@ func TestConsolidateMemories_CollectsTags(t *testing.T) {
 func TestConsolidateMemories_CreatesSourceWithDomain(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1622,7 +1622,7 @@ func TestConsolidateMemories_CreatesSourceWithDomain(t *testing.T) {
 func TestExplainReasoning(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1648,7 +1648,7 @@ func TestExplainReasoning(t *testing.T) {
 func TestRestoreMemory(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1680,7 +1680,7 @@ func TestRestoreMemory(t *testing.T) {
 func TestListDeletedMemories(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1717,7 +1717,7 @@ func TestListDeletedMemories(t *testing.T) {
 func TestGetEvolutionChain(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1747,7 +1747,7 @@ func TestGetEvolutionChain(t *testing.T) {
 func TestCreateProject(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1772,7 +1772,7 @@ func TestCreateProject(t *testing.T) {
 func TestAddProjectItem(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1801,7 +1801,7 @@ func TestAddProjectItem(t *testing.T) {
 func TestGetProjectTree(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1837,7 +1837,7 @@ func TestGetProjectTree(t *testing.T) {
 func TestListProjects(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()
@@ -1865,7 +1865,7 @@ func TestListProjects(t *testing.T) {
 func TestTraverseMemoryGraph(t *testing.T) {
 	store, err := sqlite.NewMemoryStore(":memory:")
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	srv := mcp.NewServer(store)
 	ctx := context.Background()

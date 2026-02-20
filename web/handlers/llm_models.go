@@ -165,10 +165,10 @@ func (h *LLMModelHandlers) getOllamaModels(ctx context.Context, baseURL string) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to Ollama: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Ollama returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("ollama returned status %d", resp.StatusCode)
 	}
 
 	var result struct {
@@ -206,10 +206,10 @@ func (h *LLMModelHandlers) testOllamaConnection(ctx context.Context, baseURL str
 	if err != nil {
 		return fmt.Errorf("failed to connect to Ollama at %s: %w", baseURL, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Ollama returned status %d", resp.StatusCode)
+		return fmt.Errorf("ollama returned status %d", resp.StatusCode)
 	}
 
 	return nil
@@ -248,7 +248,7 @@ func (h *LLMModelHandlers) testOpenAIConnection(ctx context.Context, apiKey stri
 	if err != nil {
 		return fmt.Errorf("failed to connect to OpenAI: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return fmt.Errorf("invalid API key")
@@ -306,8 +306,8 @@ func (h *LLMModelHandlers) testAnthropicConnection(ctx context.Context, apiKey s
 	if err != nil {
 		return fmt.Errorf("failed to connect to Anthropic: %w", err)
 	}
-	defer io.ReadAll(resp.Body)
-	resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
+	_, _ = io.ReadAll(resp.Body)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return fmt.Errorf("invalid API key")
@@ -316,7 +316,7 @@ func (h *LLMModelHandlers) testAnthropicConnection(ctx context.Context, apiKey s
 	// 4xx errors other than 401 might be expected (rate limit, etc)
 	// but connection is valid
 	if resp.StatusCode >= 500 {
-		return fmt.Errorf("Anthropic service error: status %d", resp.StatusCode)
+		return fmt.Errorf("anthropic service error: status %d", resp.StatusCode)
 	}
 
 	return nil

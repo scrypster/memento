@@ -24,7 +24,7 @@ func TestMigrationUp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to open database: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Enable WAL and foreign keys (like MemoryStore does)
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
@@ -42,7 +42,7 @@ func TestMigrationUp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create migration manager: %v", err)
 	}
-	defer mgr.Close()
+	defer func() { _ = mgr.Close() }()
 
 	// Run migrations
 	if err := mgr.Up(); err != nil {
@@ -118,7 +118,7 @@ func TestMigrationDown(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to open database: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
 		t.Fatalf("Failed to enable WAL: %v", err)
@@ -132,7 +132,7 @@ func TestMigrationDown(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create migration manager: %v", err)
 	}
-	defer mgr.Close()
+	defer func() { _ = mgr.Close() }()
 
 	// Apply schema
 	if err := mgr.Up(); err != nil {
@@ -164,7 +164,7 @@ func TestMigrationVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to open database: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Enable WAL and foreign keys
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
@@ -182,10 +182,10 @@ func TestMigrationVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create migration manager: %v", err)
 	}
-	defer mgr.Close()
+	defer func() { _ = mgr.Close() }()
 
 	// Check version before migration (should be 0 or no version)
-	version, dirty, err := mgr.Version()
+	_, _, err = mgr.Version()
 	if err != nil && err.Error() != "no migration" {
 		t.Fatalf("Unexpected error getting version: %v", err)
 	}
@@ -196,7 +196,7 @@ func TestMigrationVersion(t *testing.T) {
 	}
 
 	// Check version after migration
-	version, dirty, err = mgr.Version()
+	version, dirty, err := mgr.Version()
 	if err != nil {
 		t.Fatalf("Failed to get version after migration: %v", err)
 	}
@@ -220,7 +220,7 @@ func TestMigrationIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to open database: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Enable WAL and foreign keys
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
@@ -238,7 +238,7 @@ func TestMigrationIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create migration manager: %v", err)
 	}
-	defer mgr.Close()
+	defer func() { _ = mgr.Close() }()
 
 	// Run up migration first time
 	if err := mgr.Up(); err != nil {
@@ -269,7 +269,7 @@ func TestMigrationOrder(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to open database: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Enable WAL and foreign keys
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
@@ -287,7 +287,7 @@ func TestMigrationOrder(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create migration manager: %v", err)
 	}
-	defer mgr.Close()
+	defer func() { _ = mgr.Close() }()
 
 	// Run up migration
 	if err := mgr.Up(); err != nil {
@@ -320,7 +320,7 @@ func TestMemoryStoreWithMigrations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create memory store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Verify we can use the store
 	ctx := context.Background()

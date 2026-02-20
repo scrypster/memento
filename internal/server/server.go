@@ -382,7 +382,7 @@ func Start(ctx context.Context, cfg *config.Config, store storage.MemoryStore, q
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"healthy","version":"1.0.0"}`))
+		_, _ = w.Write([]byte(`{"status":"healthy","version":"1.0.0"}`))
 	})
 
 	// Wrap API routes with auth middleware

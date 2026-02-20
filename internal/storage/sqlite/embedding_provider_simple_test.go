@@ -15,7 +15,7 @@ func TestEmbeddingProvider_StoreAndGet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	provider := NewEmbeddingProvider(store.db)
 	ctx := context.Background()
@@ -66,7 +66,7 @@ func TestEmbeddingProvider_Delete(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	provider := NewEmbeddingProvider(store.db)
 	ctx := context.Background()
@@ -110,7 +110,7 @@ func TestEmbeddingProvider_GetDimension(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	provider := NewEmbeddingProvider(store.db)
 	ctx := context.Background()
@@ -158,7 +158,7 @@ func TestEmbeddingProvider_NotFound(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	provider := NewEmbeddingProvider(store.db)
 	ctx := context.Background()
@@ -187,7 +187,7 @@ func TestEmbeddingProvider_InvalidInput(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	provider := NewEmbeddingProvider(store.db)
 	ctx := context.Background()
@@ -260,7 +260,7 @@ func TestEmbeddingProvider_Precision(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	provider := NewEmbeddingProvider(store.db)
 	ctx := context.Background()
@@ -313,7 +313,7 @@ func TestEmbeddingProvider_MultipleMemories(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	provider := NewEmbeddingProvider(store.db)
 	ctx := context.Background()
@@ -370,7 +370,7 @@ func BenchmarkStoreEmbedding(b *testing.B) {
 	if err != nil {
 		b.Fatalf("Failed to create store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	provider := NewEmbeddingProvider(store.db)
 	ctx := context.Background()
@@ -392,7 +392,7 @@ func BenchmarkStoreEmbedding(b *testing.B) {
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		}
-		store.Store(context.Background(), testMemory)
+		_ = store.Store(context.Background(), testMemory)
 	}
 
 	b.ResetTimer()
@@ -408,7 +408,7 @@ func BenchmarkGetEmbedding(b *testing.B) {
 	if err != nil {
 		b.Fatalf("Failed to create store: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	provider := NewEmbeddingProvider(store.db)
 	ctx := context.Background()
@@ -422,7 +422,7 @@ func BenchmarkGetEmbedding(b *testing.B) {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
-	store.Store(ctx, testMemory)
+	_ = store.Store(ctx, testMemory)
 
 	dimension := 384
 	embedding := make([]float64, dimension)
@@ -430,7 +430,7 @@ func BenchmarkGetEmbedding(b *testing.B) {
 		embedding[i] = float64(i) * 0.001
 	}
 
-	provider.StoreEmbedding(ctx, memoryID, embedding, dimension, "bench-model")
+	_ = provider.StoreEmbedding(ctx, memoryID, embedding, dimension, "bench-model")
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

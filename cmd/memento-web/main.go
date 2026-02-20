@@ -42,7 +42,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize storage: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Setup context for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())

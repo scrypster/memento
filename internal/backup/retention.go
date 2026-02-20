@@ -49,22 +49,6 @@ func listBackups(backupDir string) ([]BackupInfo, error) {
 	return backups, nil
 }
 
-// filterBackupsByAge filters backups by age range.
-// Returns backups between minAge and maxAge (inclusive).
-func filterBackupsByAge(backups []BackupInfo, minAge, maxAge time.Duration) []BackupInfo {
-	now := time.Now()
-	var filtered []BackupInfo
-
-	for _, backup := range backups {
-		age := now.Sub(backup.Timestamp)
-		if age >= minAge && age < maxAge {
-			filtered = append(filtered, backup)
-		}
-	}
-
-	return filtered
-}
-
 // applyRetention removes old backups according to the retention policy.
 // It categorizes backups by age and keeps only the specified number in each tier.
 func applyRetention(backupDir string, policy RetentionPolicy) error {

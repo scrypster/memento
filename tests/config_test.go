@@ -220,6 +220,6 @@ func clearMementoEnv(t *testing.T) {
 	}
 
 	for _, v := range vars {
-		os.Unsetenv(v)
+		_ = os.Unsetenv(v)
 	}
 }

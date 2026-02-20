@@ -102,9 +102,9 @@ func RelationshipExtractionPrompt(content string, entities []types.Entity) strin
 	// Build entity list for the prompt
 	var entityList strings.Builder
 	for i, entity := range entities {
-		entityList.WriteString(fmt.Sprintf("- %s (%s)\n", entity.Name, entity.Type))
+		fmt.Fprintf(&entityList, "- %s (%s)\n", entity.Name, entity.Type)
 		if i >= 50 { // Limit to first 50 entities to avoid token limits
-			entityList.WriteString(fmt.Sprintf("... and %d more entities\n", len(entities)-50))
+			fmt.Fprintf(&entityList, "... and %d more entities\n", len(entities)-50)
 			break
 		}
 	}
@@ -298,11 +298,11 @@ func EntityExtractionPromptWithSettings(content string, settings *types.Settings
 			if desc == "" {
 				desc = ct.Name
 			}
-			typeList.WriteString(fmt.Sprintf("- %s: %s (custom)\n", typeID, desc))
+			fmt.Fprintf(&typeList, "- %s: %s (custom)\n", typeID, desc)
 		} else if desc, ok := systemEntityTypeDescriptions[typeID]; ok {
-			typeList.WriteString(fmt.Sprintf("- %s: %s\n", typeID, desc))
+			fmt.Fprintf(&typeList, "- %s: %s\n", typeID, desc)
 		} else {
-			typeList.WriteString(fmt.Sprintf("- %s\n", typeID))
+			fmt.Fprintf(&typeList, "- %s\n", typeID)
 		}
 	}
 
@@ -357,9 +357,9 @@ func RelationshipExtractionPromptWithSettings(content string, entities []types.E
 	// Build entity list
 	var entityList strings.Builder
 	for i, entity := range entities {
-		entityList.WriteString(fmt.Sprintf("- %s (%s)\n", entity.Name, entity.Type))
+		fmt.Fprintf(&entityList, "- %s (%s)\n", entity.Name, entity.Type)
 		if i >= 50 {
-			entityList.WriteString(fmt.Sprintf("... and %d more entities\n", len(entities)-50))
+			fmt.Fprintf(&entityList, "... and %d more entities\n", len(entities)-50)
 			break
 		}
 	}
@@ -368,9 +368,9 @@ func RelationshipExtractionPromptWithSettings(content string, entities []types.E
 	var customBidi, customUni strings.Builder
 	for _, ct := range settings.CustomRelationshipTypes {
 		if ct.Bidirectional {
-			customBidi.WriteString(fmt.Sprintf(", %s", ct.ID))
+			fmt.Fprintf(&customBidi, ", %s", ct.ID)
 		} else {
-			customUni.WriteString(fmt.Sprintf(", %s", ct.ID))
+			fmt.Fprintf(&customUni, ", %s", ct.ID)
 		}
 	}
 
@@ -432,7 +432,7 @@ func ClassificationExtractionPromptWithSettings(content string, settings *types.
 	// Build memory type descriptions for the prompt
 	var memTypeDesc strings.Builder
 	for _, mt := range allMemoryTypes {
-		memTypeDesc.WriteString(fmt.Sprintf("- %s\n", mt))
+		fmt.Fprintf(&memTypeDesc, "- %s\n", mt)
 	}
 
 	// If active classification category is set, use targeted prompt
@@ -467,7 +467,7 @@ func buildTargetedClassificationPrompt(content, activeCategory string, schema *t
 		if desc == "" {
 			desc = clf.Name
 		}
-		classificationList.WriteString(fmt.Sprintf("- %s: %s\n", clf.Name, desc))
+		fmt.Fprintf(&classificationList, "- %s: %s\n", clf.Name, desc)
 	}
 
 	// Build example classification name
@@ -531,7 +531,7 @@ func buildMultiCategoryClassificationPrompt(content string, schemas []types.Clas
 		if desc == "" {
 			desc = schema.Category
 		}
-		categoryList.WriteString(fmt.Sprintf("- %s: %s\n", schema.Category, desc))
+		fmt.Fprintf(&categoryList, "- %s: %s\n", schema.Category, desc)
 	}
 
 	// Build classification hints per category
@@ -540,7 +540,7 @@ func buildMultiCategoryClassificationPrompt(content string, schemas []types.Clas
 		if len(schema.Classifications) == 0 {
 			continue
 		}
-		classificationHints.WriteString(fmt.Sprintf("- For %s: ", schema.Category))
+		fmt.Fprintf(&classificationHints, "- For %s: ", schema.Category)
 		names := make([]string, 0, len(schema.Classifications))
 		for _, clf := range schema.Classifications {
 			names = append(names, fmt.Sprintf("%q", clf.Name))

@@ -23,7 +23,7 @@ func newTestEngine(t *testing.T) *MemoryEngine {
 
 	store, err := sqlite.NewMemoryStore(dbPath)
 	require.NoError(t, err)
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 
 	cfg := DefaultConfig()
 	cfg.NumWorkers = 1
@@ -44,7 +44,7 @@ func TestOnMemoryCreated_FiresOnStore(t *testing.T) {
 
 	ctx := context.Background()
 	require.NoError(t, eng.Start(ctx))
-	defer eng.Shutdown(ctx)
+	defer func() { _ = eng.Shutdown(ctx) }()
 
 	mem, err := eng.Store(ctx, "test callback content")
 	require.NoError(t, err)
@@ -68,7 +68,7 @@ func TestOnEnrichmentStarted_FiresOnProcessing(t *testing.T) {
 
 	ctx := context.Background()
 	require.NoError(t, eng.Start(ctx))
-	defer eng.Shutdown(ctx)
+	defer func() { _ = eng.Shutdown(ctx) }()
 
 	mem, err := eng.Store(ctx, "test enrichment started callback")
 	require.NoError(t, err)
@@ -91,7 +91,7 @@ func TestOnEnrichmentComplete_FiresAfterEnrichment(t *testing.T) {
 
 	ctx := context.Background()
 	require.NoError(t, eng.Start(ctx))
-	defer eng.Shutdown(ctx)
+	defer func() { _ = eng.Shutdown(ctx) }()
 
 	mem, err := eng.Store(ctx, "test enrichment complete callback")
 	require.NoError(t, err)
@@ -120,7 +120,7 @@ func TestAllCallbacks_FireInOrder(t *testing.T) {
 
 	ctx := context.Background()
 	require.NoError(t, eng.Start(ctx))
-	defer eng.Shutdown(ctx)
+	defer func() { _ = eng.Shutdown(ctx) }()
 
 	mem, err := eng.Store(ctx, "test all callbacks in order")
 	require.NoError(t, err)
@@ -147,7 +147,7 @@ func TestNoCallbacks_DoesNotPanic(t *testing.T) {
 	// Don't set any callbacks — should not panic
 	ctx := context.Background()
 	require.NoError(t, eng.Start(ctx))
-	defer eng.Shutdown(ctx)
+	defer func() { _ = eng.Shutdown(ctx) }()
 
 	mem, err := eng.Store(ctx, "no callbacks set")
 	require.NoError(t, err)
@@ -165,5 +165,5 @@ func TestNoCallbacks_DoesNotPanic(t *testing.T) {
 
 func init() {
 	// Suppress noisy log output during tests
-	os.Setenv("MEMENTO_DATA_PATH", os.TempDir())
+	_ = os.Setenv("MEMENTO_DATA_PATH", os.TempDir())
 }

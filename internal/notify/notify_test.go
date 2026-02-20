@@ -70,8 +70,8 @@ func TestEventWatcherDrainsExisting(t *testing.T) {
 
 	// Write events BEFORE starting watcher
 	writer := NewEventWriter(dir)
-	writer.Notify("memory_created", "mem:general:drain1")
-	writer.Notify("enrichment_complete", "mem:general:drain2")
+	_ = writer.Notify("memory_created", "mem:general:drain1")
+	_ = writer.Notify("enrichment_complete", "mem:general:drain2")
 
 	received := make(chan string, 10)
 	watcher := NewEventWatcher(dir, func(eventType, memoryID string) {

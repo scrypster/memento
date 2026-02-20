@@ -13,7 +13,7 @@ import (
 )
 
 func TestLoadConfig_DefaultHostIsLocalhost(t *testing.T) {
-	os.Unsetenv("MEMENTO_HOST")
+	_ = os.Unsetenv("MEMENTO_HOST")
 	cfg, err := config.LoadConfig()
 	assert.NoError(t, err)
 	assert.Equal(t, "127.0.0.1", cfg.Server.Host,
@@ -21,8 +21,7 @@ func TestLoadConfig_DefaultHostIsLocalhost(t *testing.T) {
 }
 
 func TestLoadConfig_CanOverrideHost(t *testing.T) {
-	os.Setenv("MEMENTO_HOST", "0.0.0.0")
-	defer os.Unsetenv("MEMENTO_HOST")
+	t.Setenv("MEMENTO_HOST", "0.0.0.0")
 	cfg, err := config.LoadConfig()
 	assert.NoError(t, err)
 	assert.Equal(t, "0.0.0.0", cfg.Server.Host)
@@ -31,7 +30,7 @@ func TestLoadConfig_CanOverrideHost(t *testing.T) {
 // TestUserConfig_DefaultValues verifies UserConfig has sensible defaults
 // when no environment variables or database entries are set.
 func TestUserConfig_DefaultValues(t *testing.T) {
-	os.Unsetenv("MEMENTO_USER_NAME")
+	_ = os.Unsetenv("MEMENTO_USER_NAME")
 
 	cfg, err := config.LoadConfig()
 	require.NoError(t, err)
@@ -43,8 +42,7 @@ func TestUserConfig_DefaultValues(t *testing.T) {
 // TestUserConfig_EnvVarFallback verifies that MEMENTO_USER_NAME env var
 // sets the user name when no database value exists.
 func TestUserConfig_EnvVarFallback(t *testing.T) {
-	os.Setenv("MEMENTO_USER_NAME", "alice")
-	defer os.Unsetenv("MEMENTO_USER_NAME")
+	t.Setenv("MEMENTO_USER_NAME", "alice")
 
 	cfg, err := config.LoadConfig()
 	require.NoError(t, err)
@@ -56,7 +54,7 @@ func TestUserConfig_EnvVarFallback(t *testing.T) {
 // name to the settings table and can be read back.
 func TestSaveConfig_PersistsUserName(t *testing.T) {
 	db := openTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Create a config with a user name
 	cfg := &config.Config{}
@@ -77,14 +75,14 @@ func TestSaveConfig_PersistsUserName(t *testing.T) {
 // the user_name from the settings table.
 func TestLoadConfigFromDB_ReadsUserName(t *testing.T) {
 	db := openTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Insert user_name directly into settings table
 	_, err := db.Exec(`INSERT INTO settings (key, value) VALUES ('user_name', 'charlie')`)
 	require.NoError(t, err)
 
 	// Load config from DB (no env override)
-	os.Unsetenv("MEMENTO_USER_NAME")
+	_ = os.Unsetenv("MEMENTO_USER_NAME")
 	cfg, err := config.LoadConfigFromDB(db)
 	require.NoError(t, err, "LoadConfigFromDB must not return an error")
 
@@ -96,11 +94,10 @@ func TestLoadConfigFromDB_ReadsUserName(t *testing.T) {
 // takes precedence over the environment variable.
 func TestLoadConfigFromDB_DBOverridesEnvVar(t *testing.T) {
 	db := openTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Set env var
-	os.Setenv("MEMENTO_USER_NAME", "env-user")
-	defer os.Unsetenv("MEMENTO_USER_NAME")
+	t.Setenv("MEMENTO_USER_NAME", "env-user")
 
 	// Insert different value in DB
 	_, err := db.Exec(`INSERT INTO settings (key, value) VALUES ('user_name', 'db-user')`)
@@ -117,10 +114,9 @@ func TestLoadConfigFromDB_DBOverridesEnvVar(t *testing.T) {
 // exists, LoadConfigFromDB falls back to the environment variable.
 func TestLoadConfigFromDB_FallsBackToEnvVar(t *testing.T) {
 	db := openTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
-	os.Setenv("MEMENTO_USER_NAME", "fallback-user")
-	defer os.Unsetenv("MEMENTO_USER_NAME")
+	t.Setenv("MEMENTO_USER_NAME", "fallback-user")
 
 	// No DB entry - should fall back to env var
 	cfg, err := config.LoadConfigFromDB(db)
@@ -134,9 +130,9 @@ func TestLoadConfigFromDB_FallsBackToEnvVar(t *testing.T) {
 // work together for a complete round-trip.
 func TestSaveAndLoad_RoundTrip(t *testing.T) {
 	db := openTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
-	os.Unsetenv("MEMENTO_USER_NAME")
+	_ = os.Unsetenv("MEMENTO_USER_NAME")
 
 	// Save a config
 	original := &config.Config{}
@@ -156,7 +152,7 @@ func TestSaveAndLoad_RoundTrip(t *testing.T) {
 // updates the value (upsert semantics).
 func TestSaveConfig_UpdatesExistingEntry(t *testing.T) {
 	db := openTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	cfg := &config.Config{}
 

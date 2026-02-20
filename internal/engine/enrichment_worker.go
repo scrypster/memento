@@ -65,7 +65,9 @@ func (e *MemoryEngine) processEnrichmentJob(ctx context.Context, workerID int, j
 		// Try to requeue the job
 		if !e.requeueEnrichmentJob(ctx, job) {
 			// Failed to requeue, mark as failed
-			e.memoryStore.UpdateStatus(dbCtx, job.MemoryID, types.StatusFailed)
+			if err := e.memoryStore.UpdateStatus(dbCtx, job.MemoryID, types.StatusFailed); err != nil {
+				log.Printf("ERROR: Worker %d failed to mark %s as failed: %v", workerID, job.MemoryID, err)
+			}
 		}
 		return
 	}
@@ -87,11 +89,12 @@ func (e *MemoryEngine) processEnrichmentJob(ctx context.Context, workerID int, j
 		pipelineResult, err := e.enrichmentService.ExtractionPipeline.Extract(ctx, job.MemoryID, job.Content)
 		if err != nil {
 			log.Printf("ERROR: Worker %d entity extraction failed for %s: %v", workerID, job.MemoryID, err)
-			enrichmentError = err.Error()
 			// Mark as failed and try to requeue
 			if !e.requeueEnrichmentJob(ctx, job) {
 				// Failed to requeue, mark as failed
-				e.memoryStore.UpdateStatus(dbCtx, job.MemoryID, types.StatusFailed)
+				if err := e.memoryStore.UpdateStatus(dbCtx, job.MemoryID, types.StatusFailed); err != nil {
+					log.Printf("ERROR: Worker %d failed to mark %s as failed: %v", workerID, job.MemoryID, err)
+				}
 			}
 			return
 		}
@@ -132,7 +135,9 @@ func (e *MemoryEngine) processEnrichmentJob(ctx context.Context, workerID int, j
 		// Try to requeue the job
 		if !e.requeueEnrichmentJob(ctx, job) {
 			// Failed to requeue, mark as failed
-			e.memoryStore.UpdateStatus(dbCtx, job.MemoryID, types.StatusFailed)
+			if err := e.memoryStore.UpdateStatus(dbCtx, job.MemoryID, types.StatusFailed); err != nil {
+				log.Printf("ERROR: Worker %d failed to mark %s as failed: %v", workerID, job.MemoryID, err)
+			}
 		}
 		return
 	}

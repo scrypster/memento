@@ -152,7 +152,7 @@ func searchMemoriesLike(ctx context.Context, db *sql.DB, query string, limit, of
 		if err != nil {
 			return results, 0, false
 		}
-		defer rows.Close()
+		defer func() { _ = rows.Close() }()
 		for rows.Next() {
 			var id, content, source string
 			var createdAt sql.NullTime
@@ -174,7 +174,7 @@ func searchMemoriesLike(ctx context.Context, db *sql.DB, query string, limit, of
 	if err != nil {
 		return results, 0, false
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	for rows.Next() {
 		var id, content, source string
 		var createdAt sql.NullTime
@@ -198,7 +198,7 @@ func searchEntitiesLike(ctx context.Context, db *sql.DB, query string, limit int
 	if err != nil {
 		return nil
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var results []UnifiedSearchResult
 	for rows.Next() {
@@ -233,7 +233,7 @@ func searchRelationshipsLike(ctx context.Context, db *sql.DB, query string, limi
 	if err != nil {
 		return nil
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var results []UnifiedSearchResult
 	for rows.Next() {

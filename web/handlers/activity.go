@@ -112,7 +112,7 @@ ORDER BY bucket ASC
 		respondError(w, http.StatusInternalServerError, "failed to query activity", err)
 		return
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	// Build a map of bucket → count from the query results.
 	bucketCounts := make(map[string]int)

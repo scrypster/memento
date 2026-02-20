@@ -148,7 +148,7 @@ func (h *EntityHandler) ListEntities(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusInternalServerError, "failed to query entities", err)
 		return
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	entities := []EntityResponse{}
 	for rows.Next() {
@@ -272,7 +272,7 @@ func (h *EntityHandler) ListRelationships(w http.ResponseWriter, r *http.Request
 		respondError(w, http.StatusInternalServerError, "failed to query relationships", err)
 		return
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	relationships := []RelationshipResponse{}
 	for rows.Next() {
@@ -432,7 +432,7 @@ func (h *EntityHandler) GetEntityGraph(w http.ResponseWriter, r *http.Request) {
 		for rows.Next() {
 			var edge GraphEdge
 			if err := rows.Scan(&edge.ID, &edge.Source, &edge.Target, &edge.Type, &edge.Weight); err != nil {
-				rows.Close()
+				_ = rows.Close()
 				respondError(w, http.StatusInternalServerError, "failed to scan relationship", err)
 				return
 			}
@@ -449,7 +449,7 @@ func (h *EntityHandler) GetEntityGraph(w http.ResponseWriter, r *http.Request) {
 				nextFrontier = append(nextFrontier, edge.Target)
 			}
 		}
-		rows.Close()
+		_ = rows.Close()
 
 		frontier = nextFrontier
 	}
@@ -486,7 +486,7 @@ func (h *EntityHandler) GetEntityGraph(w http.ResponseWriter, r *http.Request) {
 			respondError(w, http.StatusInternalServerError, "failed to query entities", err)
 			return
 		}
-		defer rows.Close()
+		defer func() { _ = rows.Close() }()
 
 		for rows.Next() {
 			var node GraphNode

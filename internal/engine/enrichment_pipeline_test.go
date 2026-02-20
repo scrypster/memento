@@ -50,7 +50,7 @@ func TestFullPipelineWithClassificationAndSummary(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test database: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Create minimal schema for testing
 	schema := `

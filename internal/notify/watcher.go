@@ -41,7 +41,7 @@ func (ew *EventWatcher) Start() error {
 		return err
 	}
 	if err := w.Add(ew.dir); err != nil {
-		w.Close()
+		_ = w.Close()
 		return err
 	}
 	ew.watcher = w
@@ -54,7 +54,7 @@ func (ew *EventWatcher) Start() error {
 // Stop shuts down the watcher.
 func (ew *EventWatcher) Stop() {
 	if ew.watcher != nil {
-		ew.watcher.Close()
+		_ = ew.watcher.Close()
 	}
 	<-ew.done
 }
@@ -96,7 +96,7 @@ func (ew *EventWatcher) processFile(path string) {
 	if err != nil {
 		return // file already consumed by another process
 	}
-	os.Remove(path)
+	_ = os.Remove(path)
 
 	var event Event
 	if err := json.Unmarshal(data, &event); err != nil {

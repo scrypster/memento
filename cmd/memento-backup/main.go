@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	configPath = flag.String("config", "", "Path to config file (optional, uses env vars by default)")
-	dbPath     = flag.String("db", "", "Path to database file (overrides config)")
+	_      = flag.String("config", "", "Path to config file (optional, uses env vars by default)")
+	dbPath = flag.String("db", "", "Path to database file (overrides config)")
 	backupDir  = flag.String("backup-dir", "", "Backup directory path (overrides config)")
 	interval   = flag.Duration("interval", 0, "Backup interval (overrides config)")
 	verify     = flag.Bool("verify", true, "Verify backups after creation")
