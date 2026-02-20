@@ -657,7 +657,9 @@ func TestEnrichmentPipeline_InvalidEntityType(t *testing.T) {
 
 	// Only the valid entity should be stored in database
 	var entityCount int
-	db.QueryRow(`SELECT COUNT(*) FROM entities`).Scan(&entityCount)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM entities`).Scan(&entityCount); err != nil {
+		t.Fatalf("failed to count entities: %v", err)
+	}
 	if entityCount != 1 {
 		t.Errorf("Expected only 1 valid entity in DB, got %d", entityCount)
 	}
@@ -717,14 +719,18 @@ func TestEnrichmentPipeline_ConfidenceRangeValidation(t *testing.T) {
 
 	// Only valid entity should be stored
 	var entityCount int
-	db.QueryRow(`SELECT COUNT(*) FROM entities`).Scan(&entityCount)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM entities`).Scan(&entityCount); err != nil {
+		t.Fatalf("failed to count entities: %v", err)
+	}
 	if entityCount != 1 {
 		t.Errorf("Expected only 1 valid entity in DB, got %d", entityCount)
 	}
 
 	// Relationship should not be stored (target entity missing)
 	var relCount int
-	db.QueryRow(`SELECT COUNT(*) FROM relationships`).Scan(&relCount)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM relationships`).Scan(&relCount); err != nil {
+		t.Fatalf("failed to count relationships: %v", err)
+	}
 	if relCount != 0 {
 		t.Errorf("Expected 0 relationships in DB (invalid target), got %d", relCount)
 	}
