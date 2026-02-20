@@ -50,7 +50,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6363/api/health"]
       interval: 30s
       timeout: 3s
-      start_period: 10s
+      start_period: 45s
       retries: 3
 
   # Ollama LLM service
@@ -73,26 +73,27 @@ services:
       start_period: 30s
       retries: 5
 
-  # Automated backup service
-  backup:
-    build:
-      context: .
-      dockerfile: Dockerfile.backup
-    container_name: memento-backup
-    environment:
-      - BACKUP_INTERVAL=3600        # 1 hour in seconds
-      - BACKUP_RETENTION_DAYS=7     # Keep backups for 7 days
-      - BACKUP_SOURCE=/data
-      - BACKUP_DEST=/backups
-    volumes:
-      - memento-data:/data:ro       # Read-only access to database
-      - memento-backups:/backups
-    depends_on:
-      memento:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - memento-network
+  # Automated backup service (v0.2.0 — not yet implemented)
+  # Requires Dockerfile.backup — uncomment when ready
+  # backup:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.backup
+  #   container_name: memento-backup
+  #   environment:
+  #     - BACKUP_INTERVAL=3600        # 1 hour in seconds
+  #     - BACKUP_RETENTION_DAYS=7     # Keep backups for 7 days
+  #     - BACKUP_SOURCE=/data
+  #     - BACKUP_DEST=/backups
+  #   volumes:
+  #     - memento-data:/data:ro       # Read-only access to database
+  #     - memento-backups:/backups
+  #   depends_on:
+  #     memento:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+  #   networks:
+  #     - memento-network
 
   # PostgreSQL database (optional - enable with profiles)
   # Start with: docker-compose --profile postgres up -d
