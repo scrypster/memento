@@ -67,9 +67,10 @@ fi
 
 # Initialize default connections.json (always write to ensure correct schema)
 CONFIG_FILE="${MEMENTO_CONNECTIONS_CONFIG:-/app/config/connections.json}"
+DATA_PATH="${MEMENTO_DATA_PATH:-/data}"
 echo "Writing default connections.json..."
 mkdir -p "$(dirname "$CONFIG_FILE")"
-cat > "$CONFIG_FILE" << 'JSONEOF'
+cat > "$CONFIG_FILE" << JSONEOF
 {
   "default_connection": "default",
   "connections": [
@@ -80,7 +81,7 @@ cat > "$CONFIG_FILE" << 'JSONEOF'
       "enabled": true,
       "database": {
         "type": "sqlite",
-        "path": "/data/memento.db"
+        "path": "${DATA_PATH}/memento.db"
       },
       "llm": {
         "provider": "ollama",
@@ -95,17 +96,6 @@ cat > "$CONFIG_FILE" << 'JSONEOF'
   }
 }
 JSONEOF
-
-# Warn if running without authentication
-SECURITY_MODE="${MEMENTO_SECURITY_MODE:-development}"
-API_TOKEN="${MEMENTO_API_TOKEN:-}"
-if [ "$SECURITY_MODE" = "development" ] && [ -z "$API_TOKEN" ]; then
-    echo ""
-    echo "⚠  WARNING: Running in development mode — no authentication required."
-    echo "   Anyone with access to port ${MEMENTO_PORT:-6363} can read and write your memories."
-    echo "   To enable auth: set MEMENTO_API_TOKEN in your environment or .env file."
-    echo ""
-fi
 
 echo "Starting Memento..."
 exec ./memento-web "$@"
