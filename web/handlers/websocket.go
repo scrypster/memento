@@ -74,15 +74,17 @@ func (h *WebSocketHub) Run() {
 				delete(h.clients, client)
 				close(client.getSendChannel())
 			}
+			count := len(h.clients)
 			h.mu.Unlock()
-			log.Printf("WebSocket client disconnected (total: %d)", len(h.clients))
+			log.Printf("WebSocket client disconnected (total: %d)", count)
 
 		case message := <-h.broadcast:
-			h.mu.RLock()
+			// Use a full Lock because we may delete from the map in the default branch.
+			h.mu.Lock()
 			data, err := json.Marshal(message)
 			if err != nil {
 				log.Printf("ERROR: Failed to marshal WebSocket message: %v", err)
-				h.mu.RUnlock()
+				h.mu.Unlock()
 				continue
 			}
 
@@ -96,7 +98,7 @@ func (h *WebSocketHub) Run() {
 					delete(h.clients, client)
 				}
 			}
-			h.mu.RUnlock()
+			h.mu.Unlock()
 
 		case <-h.ctx.Done():
 			log.Println("WebSocket hub stopping...")

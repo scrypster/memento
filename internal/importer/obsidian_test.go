@@ -3,6 +3,8 @@ package importer_test
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -10,10 +12,38 @@ import (
 	"github.com/scrypster/memento/internal/storage/sqlite"
 )
 
-// TestObsidianImport runs a full integration import against the sample vault
-// created in /tmp/test-vault. It validates that memories are created and
+// TestObsidianImport runs a full integration import against a synthetic vault
+// created in a temp directory. It validates that memories are created and
 // wiki-link relationships are counted.
 func TestObsidianImport(t *testing.T) {
+	// Build a minimal synthetic vault so the test is self-contained.
+	vaultDir := t.TempDir()
+
+	note1 := []byte(`---
+title: Alpha Note
+tags: [go, testing]
+---
+
+# Alpha Note
+
+This note links to [[Beta Note]] for more detail.
+`)
+	note2 := []byte(`---
+title: Beta Note
+tags: [go, testing]
+---
+
+# Beta Note
+
+This note links back to [[Alpha Note]] as a reference.
+`)
+	if err := os.WriteFile(filepath.Join(vaultDir, "alpha-note.md"), note1, 0o600); err != nil {
+		t.Fatalf("failed to create note1: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(vaultDir, "beta-note.md"), note2, 0o600); err != nil {
+		t.Fatalf("failed to create note2: %v", err)
+	}
+
 	// Use an in-memory SQLite store.
 	store, err := sqlite.NewMemoryStore(":memory:")
 	if err != nil {
@@ -24,7 +54,7 @@ func TestObsidianImport(t *testing.T) {
 	imp := importer.NewObsidianImporter(store)
 	ctx := context.Background()
 
-	jobID, err := imp.StartImport(ctx, "/tmp/test-vault")
+	jobID, err := imp.StartImport(ctx, vaultDir)
 	if err != nil {
 		t.Fatalf("StartImport failed: %v", err)
 	}
