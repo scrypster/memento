@@ -257,10 +257,19 @@ if curl -sf "$OLLAMA_URL/api/tags" > /dev/null 2>&1; then
         fi
     fi
 else
-    fail "Ollama is not running."
-    if command -v ollama &>/dev/null; then
-        echo "    Start it with: ollama serve"
-    fi
+    echo ""
+    echo -e "${RED}✗ Ollama is not running.${NC}"
+    echo ""
+    echo "  Memento requires Ollama for entity extraction and embeddings."
+    echo "  Install and start Ollama, then re-run this script:"
+    echo ""
+    echo -e "${YELLOW}  macOS:${NC}"
+    echo "    brew install ollama && ollama serve"
+    echo ""
+    echo -e "${YELLOW}  Linux:${NC}"
+    echo "    curl -fsSL https://ollama.ai/install.sh | sh && ollama serve"
+    echo ""
+    exit 1
 fi
 
 # --- Summary ---
