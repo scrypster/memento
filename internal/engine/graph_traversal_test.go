@@ -15,7 +15,7 @@ func TestBreadthFirstSearch_SingleNode(t *testing.T) {
 	store := newMockMemoryStore()
 
 	startID := "mem:test:start"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      startID,
 		Content: "start",
 		Domain:  "test",
@@ -53,7 +53,7 @@ func TestBreadthFirstSearch_VisitorStopEarly(t *testing.T) {
 	store := newMockMemoryStore()
 
 	startID := "mem:test:start"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      startID,
 		Content: "start",
 		Domain:  "test",
@@ -87,7 +87,7 @@ func TestBreadthFirstSearch_ContextCancellation(t *testing.T) {
 
 	store := newMockMemoryStore()
 	startID := "mem:test:start"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      startID,
 		Content: "start",
 		Domain:  "test",
@@ -121,25 +121,25 @@ func TestBreadthFirstSearch_MaxHopsBound(t *testing.T) {
 	n2ID := "mem:test:n2"
 	n3ID := "mem:test:n3"
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      startID,
 		Content: "start",
 		Domain:  "test",
 	})
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      n1ID,
 		Content: "n1",
 		Domain:  "test",
 	})
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      n2ID,
 		Content: "n2",
 		Domain:  "test",
 	})
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      n3ID,
 		Content: "n3",
 		Domain:  "test",
@@ -175,7 +175,7 @@ func TestBreadthFirstSearch_MaxNodesBound(t *testing.T) {
 	store := newMockMemoryStore()
 
 	startID := "mem:test:start"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      startID,
 		Content: "start",
 		Domain:  "test",
@@ -206,7 +206,7 @@ func TestFindPathsBounded_SameSourceTarget(t *testing.T) {
 	store := newMockMemoryStore()
 
 	nodeID := "mem:test:node"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      nodeID,
 		Content: "node",
 		Domain:  "test",
@@ -250,13 +250,13 @@ func TestFindPathsBounded_NoPath(t *testing.T) {
 	source := "mem:test:source"
 	target := "mem:test:target"
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      source,
 		Content: "source",
 		Domain:  "test",
 	})
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      target,
 		Content: "target",
 		Domain:  "test",
@@ -287,13 +287,13 @@ func TestFindPathsBounded_ContextCancellation(t *testing.T) {
 	source := "mem:test:source"
 	target := "mem:test:target"
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      source,
 		Content: "source",
 		Domain:  "test",
 	})
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      target,
 		Content: "target",
 		Domain:  "test",
@@ -317,15 +317,8 @@ func TestFindPathsBounded_ContextCancellation(t *testing.T) {
 		return
 	}
 
-	// If no error, we may have partial paths marked as truncated
-	if len(paths) > 0 {
-		for _, p := range paths {
-			if !p.Truncated {
-				// No assertion - truncation behavior is implementation detail
-				// of how DFS handles context cancellation
-			}
-		}
-	}
+	// If no error, paths may be partial — truncation is an implementation detail
+	_ = paths
 }
 
 // TestFindPathsBounded_PathConfidence tests that confidence decreases with distance.
@@ -338,10 +331,10 @@ func TestFindPathsBounded_PathConfidence(t *testing.T) {
 	n2 := "mem:test:n2"
 	target := "mem:test:target"
 
-	store.Store(ctx, &types.Memory{ID: source, Content: "source", Domain: "test"})
-	store.Store(ctx, &types.Memory{ID: n1, Content: "n1", Domain: "test"})
-	store.Store(ctx, &types.Memory{ID: n2, Content: "n2", Domain: "test"})
-	store.Store(ctx, &types.Memory{ID: target, Content: "target", Domain: "test"})
+	_ = store.Store(ctx, &types.Memory{ID: source, Content: "source", Domain: "test"})
+	_ = store.Store(ctx, &types.Memory{ID: n1, Content: "n1", Domain: "test"})
+	_ = store.Store(ctx, &types.Memory{ID: n2, Content: "n2", Domain: "test"})
+	_ = store.Store(ctx, &types.Memory{ID: target, Content: "target", Domain: "test"})
 
 	gt := NewGraphTraversal(store)
 	paths, err := gt.FindPathsBounded(ctx, source, target, storage.GraphBounds{
@@ -377,7 +370,7 @@ func TestFindRelatedBounded_SourceNodeOnly(t *testing.T) {
 	store := newMockMemoryStore()
 
 	sourceID := "mem:test:source"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      sourceID,
 		Content: "source",
 		Domain:  "test",
@@ -414,21 +407,21 @@ func TestFindRelatedBounded_TemporalBounds(t *testing.T) {
 	oldTime := now.Add(-30 * 24 * time.Hour)
 	newTime := now.Add(-1 * 24 * time.Hour)
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:        sourceID,
 		Content:   "source",
 		Domain:    "test",
 		CreatedAt: now,
 	})
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:        oldNodeID,
 		Content:   "old",
 		Domain:    "test",
 		CreatedAt: oldTime,
 	})
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:        newNodeID,
 		Content:   "new",
 		Domain:    "test",
@@ -467,7 +460,7 @@ func TestFindRelatedBounded_ContextCancellation(t *testing.T) {
 
 	store := newMockMemoryStore()
 	sourceID := "mem:test:source"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      sourceID,
 		Content: "source",
 		Domain:  "test",
@@ -494,7 +487,7 @@ func TestBreadthFirstSearch_DepthTracking(t *testing.T) {
 	store := newMockMemoryStore()
 
 	startID := "mem:test:start"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      startID,
 		Content: "start",
 		Domain:  "test",
@@ -530,13 +523,13 @@ func TestFindPathsBounded_MaxHopsRespected(t *testing.T) {
 	source := "mem:test:source"
 	target := "mem:test:target"
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      source,
 		Content: "source",
 		Domain:  "test",
 	})
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      target,
 		Content: "target",
 		Domain:  "test",
@@ -569,7 +562,7 @@ func TestBreadthFirstSearch_NoDuplicateVisits(t *testing.T) {
 	store := newMockMemoryStore()
 
 	startID := "mem:test:start"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      startID,
 		Content: "start",
 		Domain:  "test",
@@ -608,7 +601,7 @@ func TestFindPathsBounded_EmptyPathList(t *testing.T) {
 	source := "mem:test:source"
 	nonexistent := "mem:test:nonexistent"
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:      source,
 		Content: "source",
 		Domain:  "test",

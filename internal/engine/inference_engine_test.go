@@ -137,7 +137,7 @@ func (m *mockMemoryStore) Close() error {
 func TestInferConnections_EmptyStore(t *testing.T) {
 	ctx := context.Background()
 	store := newMockMemoryStore()
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       "mem:test:source",
 		Content:  "test content",
 		Domain:   "test",
@@ -164,14 +164,14 @@ func TestInferConnections_DirectConnection(t *testing.T) {
 	sourceID := "mem:test:source"
 	targetID := "mem:test:target"
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       sourceID,
 		Content:  "source content",
 		Domain:   "test",
 		Entities: []string{"entity1", "entity2", "entity3"},
 	})
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       targetID,
 		Content:  "target content",
 		Domain:   "test",
@@ -209,7 +209,7 @@ func TestInferConnections_OptionsDefaults(t *testing.T) {
 	store := newMockMemoryStore()
 
 	sourceID := "mem:test:source"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       sourceID,
 		Content:  "source content",
 		Domain:   "test",
@@ -230,10 +230,8 @@ func TestInferConnections_OptionsDefaults(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Verify that options were normalized (no error thrown)
-	if len(results) < 0 {
-		t.Errorf("results should be valid")
-	}
+	// Verify that options were normalized (no error thrown) — results may be empty
+	_ = results
 }
 
 // TestInferConnections_ConfidenceFilter tests confidence threshold filtering.
@@ -246,7 +244,7 @@ func TestInferConnections_ConfidenceFilter(t *testing.T) {
 	target2ID := "mem:test:target2"
 
 	// Source with 3 entities
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       sourceID,
 		Content:  "source",
 		Domain:   "test",
@@ -254,7 +252,7 @@ func TestInferConnections_ConfidenceFilter(t *testing.T) {
 	})
 
 	// Target 1: shares 2/3 entities (high similarity)
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       target1ID,
 		Content:  "target1",
 		Domain:   "test",
@@ -262,7 +260,7 @@ func TestInferConnections_ConfidenceFilter(t *testing.T) {
 	})
 
 	// Target 2: shares 1/3 entities (low similarity)
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       target2ID,
 		Content:  "target2",
 		Domain:   "test",
@@ -291,7 +289,7 @@ func TestInferConnections_ResultsLimit(t *testing.T) {
 	store := newMockMemoryStore()
 
 	sourceID := "mem:test:source"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       sourceID,
 		Content:  "source",
 		Domain:   "test",
@@ -301,7 +299,7 @@ func TestInferConnections_ResultsLimit(t *testing.T) {
 	// Add 10 target memories with same entity
 	for i := 0; i < 10; i++ {
 		targetID := "mem:test:target" + string(rune(i+48))
-		store.Store(ctx, &types.Memory{
+		_ = store.Store(ctx, &types.Memory{
 			ID:       targetID,
 			Content:  "target",
 			Domain:   "test",
@@ -329,7 +327,7 @@ func TestInferConnections_SortByConfidence(t *testing.T) {
 	store := newMockMemoryStore()
 
 	sourceID := "mem:test:source"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       sourceID,
 		Content:  "source",
 		Domain:   "test",
@@ -337,7 +335,7 @@ func TestInferConnections_SortByConfidence(t *testing.T) {
 	})
 
 	// High confidence target (3 shared entities)
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       "mem:test:high",
 		Content:  "high",
 		Domain:   "test",
@@ -345,7 +343,7 @@ func TestInferConnections_SortByConfidence(t *testing.T) {
 	})
 
 	// Medium confidence target (2 shared entities)
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       "mem:test:medium",
 		Content:  "medium",
 		Domain:   "test",
@@ -353,7 +351,7 @@ func TestInferConnections_SortByConfidence(t *testing.T) {
 	})
 
 	// Low confidence target (1 shared entity)
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       "mem:test:low",
 		Content:  "low",
 		Domain:   "test",
@@ -384,14 +382,14 @@ func TestInferConnections_IncludeReason(t *testing.T) {
 	sourceID := "mem:test:source"
 	targetID := "mem:test:target"
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       sourceID,
 		Content:  "source",
 		Domain:   "test",
 		Entities: []string{"e1", "e2"},
 	})
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       targetID,
 		Content:  "target",
 		Domain:   "test",
@@ -453,7 +451,7 @@ func TestFindPatterns_EntityCluster(t *testing.T) {
 
 	// Create 3 memories sharing an entity
 	for i := 0; i < 3; i++ {
-		store.Store(ctx, &types.Memory{
+		_ = store.Store(ctx, &types.Memory{
 			ID:       "mem:test:entity-" + string(rune(i+48)),
 			Content:  "content",
 			Domain:   "test",
@@ -489,7 +487,7 @@ func TestFindPatterns_TagCluster(t *testing.T) {
 
 	// Create 3 memories sharing a tag
 	for i := 0; i < 3; i++ {
-		store.Store(ctx, &types.Memory{
+		_ = store.Store(ctx, &types.Memory{
 			ID:       "mem:test:tag-" + string(rune(i+48)),
 			Content:  "content",
 			Domain:   "test",
@@ -525,14 +523,14 @@ func TestFindPatterns_MinimumMemories(t *testing.T) {
 	store := newMockMemoryStore()
 
 	// Create only 2 memories sharing an entity (below threshold of 3)
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       "mem:test:1",
 		Content:  "content",
 		Domain:   "test",
 		Entities: []string{"shared"},
 	})
 
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       "mem:test:2",
 		Content:  "content",
 		Domain:   "test",
@@ -560,7 +558,7 @@ func TestFindPatterns_DomainFiltering(t *testing.T) {
 
 	// Create memories in different domains
 	for i := 0; i < 3; i++ {
-		store.Store(ctx, &types.Memory{
+		_ = store.Store(ctx, &types.Memory{
 			ID:       "mem:domain1:1-" + string(rune(i+48)),
 			Content:  "content",
 			Domain:   "domain1",
@@ -569,7 +567,7 @@ func TestFindPatterns_DomainFiltering(t *testing.T) {
 	}
 
 	for i := 0; i < 3; i++ {
-		store.Store(ctx, &types.Memory{
+		_ = store.Store(ctx, &types.Memory{
 			ID:       "mem:domain2:2-" + string(rune(i+48)),
 			Content:  "content",
 			Domain:   "domain2",
@@ -584,14 +582,8 @@ func TestFindPatterns_DomainFiltering(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Patterns should only relate to domain1
-	for _, p := range patterns {
-		for _, memID := range p.Memories {
-			if !contains([]string{"mem:domain1:1-0", "mem:domain1:1-1", "mem:domain1:1-2"}, memID) {
-				// It's ok if pattern is empty or only has domain1 memories
-			}
-		}
-	}
+	// Patterns should only relate to domain1 memories (or be empty)
+	_ = patterns
 }
 
 // TestFindPatterns_ConfidenceCalculation tests that pattern confidence is calculated correctly.
@@ -601,7 +593,7 @@ func TestFindPatterns_ConfidenceCalculation(t *testing.T) {
 
 	// Create 5 memories sharing an entity
 	for i := 0; i < 5; i++ {
-		store.Store(ctx, &types.Memory{
+		_ = store.Store(ctx, &types.Memory{
 			ID:       "mem:test:pat-" + string(rune(i+48)),
 			Content:  "content",
 			Domain:   "test",
@@ -648,7 +640,7 @@ func TestInferConnections_ListError(t *testing.T) {
 	store := newMockMemoryStore()
 
 	sourceID := "mem:test:source"
-	store.Store(ctx, &types.Memory{
+	_ = store.Store(ctx, &types.Memory{
 		ID:       sourceID,
 		Content:  "source",
 		Domain:   "test",

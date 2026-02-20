@@ -61,7 +61,7 @@ func (m *mockListStore) List(ctx context.Context, opts storage.ListOptions) (*st
 		end = len(items)
 	}
 
-	pageItems := items
+	var pageItems []types.Memory
 	if offset < len(items) {
 		pageItems = items[offset:end]
 	} else {
@@ -259,7 +259,7 @@ func TestSearch_WithQuery_UsesSearchProvider(t *testing.T) {
 	}
 
 	mem1 := newTestMemory("mem:test:1", "golang concurrency patterns", "test")
-	store.mockListStore.memories[mem1.ID] = mem1
+	store.memories[mem1.ID] = mem1
 
 	// Pre-configure FTS result for "golang" query
 	store.ftsResults["golang"] = &storage.PaginatedResult[types.Memory]{
@@ -610,9 +610,9 @@ func TestSearch_DomainFilter_SearchProvider(t *testing.T) {
 	mem2 := newTestMemory("mem:test:2", "golang programming", "ops")
 	mem3 := newTestMemory("mem:test:3", "golang guide", "nps-aid")
 
-	store.mockListStore.memories[mem1.ID] = mem1
-	store.mockListStore.memories[mem2.ID] = mem2
-	store.mockListStore.memories[mem3.ID] = mem3
+	store.memories[mem1.ID] = mem1
+	store.memories[mem2.ID] = mem2
+	store.memories[mem3.ID] = mem3
 
 	// FTS returns all golang matches
 	store.ftsResults["golang"] = &storage.PaginatedResult[types.Memory]{

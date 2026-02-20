@@ -92,7 +92,7 @@ Open **http://localhost:6363/integrations** — the web UI generates configs, do
 | **Claude Desktop** | Download config → drop in `~/Library/Application Support/Claude/` |
 | **Cursor** | Download config → drop in `.cursor/mcp.json` + optional Cursor Rules file |
 | **Windsurf** | Download config → drop in `.codeium/windsurf/mcp_config.json` |
-| **OpenClaw** | First-class integration — install `mcp-adapter` plugin, merge config |
+| **OpenClaw** | Add to `~/.openclaw/mcp.json` under `mcpServers` — same pattern as Claude Desktop |
 | **Generic MCP** | Any MCP client — same pattern: command path + `MEMENTO_DATA_PATH` env var |
 
 > The integrations page generates ready-to-paste configs with your actual binary paths and data directories. It also has connection testing, troubleshooting, and per-project workspace scoping.
@@ -125,7 +125,33 @@ Memories are searchable immediately after storing. Enrichment (entity/relationsh
 
 > The web UI at **Integrations → Claude Code → Make it proactive** generates a version with your specific paths and connection settings, plus a download button.
 
-See the full integration guides: [Claude Code](docs/integrations/claude-code.md) | [Claude Desktop](docs/integrations/claude-desktop.md) | [Cursor & Windsurf](docs/integrations/cursor-windsurf.md)
+See the full integration guides: [Claude Code](docs/integrations/claude-code.md) | [Claude Desktop](docs/integrations/claude-desktop.md) | [Cursor & Windsurf](docs/integrations/cursor-windsurf.md) | [OpenClaw](docs/integrations/openclaw.md)
+
+### Team memory — shared knowledge across your whole engineering team
+
+Point everyone's AI tools at the same Memento instance and your team's decisions, conventions, and context become shared knowledge — queryable by anyone, attributable to anyone.
+
+Every memory is tagged with who stored it. Memento auto-detects this from your git config, or you can set it explicitly:
+
+```bash
+export MEMENTO_USER=alice   # or set in your shell profile
+```
+
+Or in your MCP config:
+```json
+"env": { "MEMENTO_USER": "alice" }
+```
+
+Once set, you can ask:
+
+```
+What did Bob decide about the auth service this week?
+recall_memory(created_by="bob", created_after="2024-01-14T00:00:00Z")
+```
+
+**Setup:** Each teammate runs Memento pointing at the same PostgreSQL database. Personal context stays personal (use a separate personal connection). Shared architectural decisions, conventions, and project context go into the shared connection.
+
+See the [team setup guide](docs/team-setup.md) for full PostgreSQL configuration.
 
 ---
 
