@@ -799,8 +799,12 @@ func TestEnrichmentPipeline_Call3Fails(t *testing.T) {
 
 	// Verify data was persisted
 	var entityCount, relCount int
-	db.QueryRow(`SELECT COUNT(*) FROM entities`).Scan(&entityCount)
-	db.QueryRow(`SELECT COUNT(*) FROM relationships`).Scan(&relCount)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM entities`).Scan(&entityCount); err != nil {
+		t.Fatalf("failed to count entities: %v", err)
+	}
+	if err := db.QueryRow(`SELECT COUNT(*) FROM relationships`).Scan(&relCount); err != nil {
+		t.Fatalf("failed to count relationships: %v", err)
+	}
 	if entityCount != 2 {
 		t.Errorf("Expected 2 entities persisted, got %d", entityCount)
 	}
@@ -871,8 +875,12 @@ func TestEnrichmentPipeline_Call4Fails(t *testing.T) {
 
 	// Verify other data was persisted
 	var entityCount, relCount int
-	db.QueryRow(`SELECT COUNT(*) FROM entities`).Scan(&entityCount)
-	db.QueryRow(`SELECT COUNT(*) FROM relationships`).Scan(&relCount)
+	if err := db.QueryRow(`SELECT COUNT(*) FROM entities`).Scan(&entityCount); err != nil {
+		t.Fatalf("failed to count entities: %v", err)
+	}
+	if err := db.QueryRow(`SELECT COUNT(*) FROM relationships`).Scan(&relCount); err != nil {
+		t.Fatalf("failed to count relationships: %v", err)
+	}
 	if entityCount != 2 {
 		t.Errorf("Expected 2 entities persisted, got %d", entityCount)
 	}
