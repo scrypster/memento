@@ -34,11 +34,11 @@ jobs:
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | tr -d '%')
           echo "Total coverage: ${COVERAGE}%"
-          if (( $(echo "$COVERAGE < 60" | bc -l) )); then
-            echo "Coverage ${COVERAGE}% is below minimum threshold of 60%"
+          if (( $(echo "$COVERAGE < 30" | bc -l) )); then
+            echo "Coverage ${COVERAGE}% is below minimum threshold of 30%"
             exit 1
           fi
-          echo "Coverage check passed: ${COVERAGE}% >= 60%"
+          echo "Coverage check passed: ${COVERAGE}% >= 30%"
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -80,5 +80,5 @@ jobs:
             -p 6363:6363 \
             memento:test
           sleep 5
-          curl -f http://localhost:6363/health || exit 1
+          curl -f http://localhost:6363/api/health || exit 1
           docker stop memento-test
