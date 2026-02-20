@@ -88,7 +88,7 @@ Open **http://localhost:6363/integrations** — the web UI generates configs, do
 
 | Client | Setup |
 |---|---|
-| **Claude Code** | `claude mcp add memento -- /path/to/memento-mcp -e MEMENTO_DATA_PATH=~/.memento` |
+| **Claude Code** | Run `./launch.sh` — it prints the exact command at the end. Pattern: `claude mcp add memento -- /absolute/path/to/memento-mcp` |
 | **Claude Desktop** | Download config → drop in `~/Library/Application Support/Claude/` |
 | **Cursor** | Download config → drop in `.cursor/mcp.json` + optional Cursor Rules file |
 | **Windsurf** | Download config → drop in `.codeium/windsurf/mcp_config.json` |
