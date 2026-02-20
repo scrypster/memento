@@ -61,6 +61,7 @@ jobs:
           chmod +x mcp-publisher
 
       - name: Publish to MCP Registry
+        continue-on-error: true
         run: |
           ./mcp-publisher login github-oidc
           ./mcp-publisher publish
