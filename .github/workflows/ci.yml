@@ -79,6 +79,7 @@ jobs:
             -e MEMENTO_PORT=6363 \
             -p 6363:6363 \
             memento:test
-          sleep 5
+          sleep 10
+          docker logs memento-test
           curl -f http://localhost:6363/api/health || exit 1
           docker stop memento-test

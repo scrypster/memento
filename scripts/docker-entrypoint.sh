@@ -2,19 +2,24 @@
 set -e
 
 OLLAMA_URL="${MEMENTO_OLLAMA_URL:-http://ollama:11434}"
+LLM_PROVIDER="${MEMENTO_LLM_PROVIDER:-ollama}"
 
-# Wait for Ollama to be ready (max 120s)
-echo "Waiting for Ollama at ${OLLAMA_URL}..."
 OLLAMA_READY=0
-for i in $(seq 1 24); do
-    if curl -sf "${OLLAMA_URL}/api/tags" > /dev/null 2>&1; then
-        OLLAMA_READY=1
-        echo "Ollama is ready"
-        break
-    fi
-    echo "   Waiting... ($i/24)"
-    sleep 5
-done
+if [ "$LLM_PROVIDER" = "ollama" ]; then
+    # Wait for Ollama to be ready (max 120s)
+    echo "Waiting for Ollama at ${OLLAMA_URL}..."
+    for i in $(seq 1 24); do
+        if curl -sf "${OLLAMA_URL}/api/tags" > /dev/null 2>&1; then
+            OLLAMA_READY=1
+            echo "Ollama is ready"
+            break
+        fi
+        echo "   Waiting... ($i/24)"
+        sleep 5
+    done
+else
+    echo "LLM provider is '${LLM_PROVIDER}' — skipping Ollama startup check"
+fi
 
 # pull_model waits for the Ollama /api/pull streaming response to complete.
 # Ollama returns newline-delimited JSON; we read until we see "success" or EOF.
